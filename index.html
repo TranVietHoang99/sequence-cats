@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sequence Mèo</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐾</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&display=swap">
+<script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<style>
+:root{
+  --bg:#fff4f8; --bg2:#f3f0ff; --panel:#ffffff; --ink:#5b4760; --muted:#a08fa6;
+  --pink:#f7a8c4; --pink-d:#df7ea3; --mint:#8fdcc2; --mint-d:#4fb795;
+  --lav:#c9b6f2; --lav-d:#9b7fdc; --cell:#fffdfa; --cell-b:#f1dfe7;
+  --red:#e06384; --black:#54527a; --gold:#ffd98a;
+  --radius:14px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%}
+body{
+  font-family:"Baloo 2",system-ui,"Segoe UI",sans-serif;color:var(--ink);
+  background:radial-gradient(circle at 10% 0%,#ffe3ee 0,transparent 40%),
+             radial-gradient(circle at 100% 100%,#e4f8f0 0,transparent 45%),
+             linear-gradient(160deg,var(--bg),var(--bg2));
+  background-attachment:fixed;
+}
+button{font-family:inherit;cursor:pointer}
+.hidden{display:none!important}
+svg.sprite{position:absolute;width:0;height:0}
+
+/* ---------- Lobby ---------- */
+#lobby{min-height:100vh;display:grid;place-items:center;padding:24px 16px}
+.lobby-card{
+  width:100%;max-width:420px;background:var(--panel);border-radius:28px;padding:28px 24px;
+  box-shadow:0 12px 40px rgba(223,126,163,.18);text-align:center;border:3px solid #ffe0ec;
+}
+.logo{width:110px;height:110px;margin:0 auto -6px;display:block}
+h1{margin:0;font-size:2.3rem;line-height:1.1;letter-spacing:.5px}
+h1 .a{color:var(--pink-d)} h1 .b{color:var(--mint-d)}
+.tag{color:var(--muted);margin:4px 0 18px}
+label{display:block;text-align:left;font-weight:700;font-size:.95rem;margin:12px 0 4px}
+input{
+  width:100%;font:inherit;font-size:1.05rem;padding:10px 14px;border-radius:12px;
+  border:2px solid #f0dce6;background:#fffafc;color:var(--ink);outline:none;
+}
+input:focus{border-color:var(--pink)}
+#codeInput{text-transform:uppercase;letter-spacing:4px;text-align:center;font-weight:800}
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;border:0;border-radius:14px;
+  padding:11px 18px;font-size:1.05rem;font-weight:800;color:#fff;background:var(--pink-d);
+  box-shadow:0 4px 0 #c86489;transition:transform .08s, box-shadow .08s;
+}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 #c86489}
+.btn.mint{background:var(--mint-d);box-shadow:0 4px 0 #3a9a79}
+.btn.lav{background:var(--lav-d);box-shadow:0 4px 0 #7c62bf}
+.btn.ghost{background:#fff;color:var(--ink);border:2px solid #f0dce6;box-shadow:none;padding:7px 12px;font-size:.95rem}
+.btn:disabled{opacity:.5;cursor:default}
+.row{display:flex;gap:10px;margin-top:14px}
+.row>*{flex:1}
+.or{margin:18px 0 0;color:var(--muted);display:flex;align-items:center;gap:10px}
+.or:before,.or:after{content:"";flex:1;height:2px;background:#f6e6ee}
+.msg{min-height:1.4em;margin-top:12px;color:var(--red);font-weight:700}
+.waiting .code{
+  font-size:2.6rem;font-weight:800;letter-spacing:8px;color:var(--pink-d);
+  background:#fff0f6;border:3px dashed var(--pink);border-radius:18px;padding:6px 10px;margin:10px 0;
+}
+.waiting .link{font-size:.85rem;word-break:break-all;color:var(--muted);margin:8px 0}
+.dots:after{content:"";animation:dots 1.4s steps(4) infinite}
+@keyframes dots{0%{content:""}25%{content:"."}50%{content:".."}75%{content:"..."}}
+
+/* ---------- Game ---------- */
+#game{max-width:1180px;margin:0 auto;padding:10px 16px 20px}
+header{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+header .title{font-weight:800;font-size:1.4rem;display:flex;align-items:center;gap:6px}
+header .title svg{width:34px;height:34px}
+header .room{font-weight:700;color:var(--muted);font-size:.95rem}
+header .room b{color:var(--ink);letter-spacing:2px}
+header .sp{flex:1}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 290px;gap:16px;align-items:start}
+@media (max-width:900px){.layout{grid-template-columns:minmax(0,1fr)}}
+
+.status{
+  background:var(--panel);border-radius:var(--radius);padding:9px 14px;margin-bottom:10px;font-weight:700;
+  border:2px solid #f6e3ec;display:flex;align-items:center;gap:8px;min-height:46px;
+}
+.status.my{border-color:var(--pink);background:#fff3f8}
+.status .dot{width:12px;height:12px;border-radius:50%;flex:none}
+
+.board-wrap{background:#ffe6f0;padding:8px;border-radius:20px;box-shadow:0 10px 30px rgba(223,126,163,.18)}
+.board{display:grid;grid-template-columns:repeat(10,1fr);gap:4px;max-width:min(720px, calc((100vh - 300px) / 1.12));min-width:min(100%, 330px);margin:0 auto}
+.cell{
+  position:relative;aspect-ratio:1/1.12;background:var(--cell);border:2px solid var(--cell-b);border-radius:8px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  user-select:none;overflow:hidden;cursor:pointer;transition:transform .1s,border-color .1s;
+  container-type:inline-size;
+}
+.cell:hover{border-color:var(--pink);transform:translateY(-1px)}
+.cell.red{color:var(--red)} .cell.black{color:var(--black)}
+.cell .rk{position:absolute;top:1px;left:4px;font-weight:800;font-size:clamp(10px,30cqw,20px);line-height:1}
+.cell .st{font-size:clamp(12px,44cqw,30px);line-height:1;margin-top:18%}
+.cell .mini{position:absolute;top:3px;right:3px;width:34%;height:34%;opacity:.55}
+.cell.corner{background:#eaf8ff;border-color:#cbe7f5;cursor:default}
+.cell.corner svg{width:88%;height:88%}
+.cell .chip{position:absolute;inset:6%;width:88%;height:88%;animation:none}
+.cell .chip.new{animation:plop .35s ease-out}
+@keyframes plop{0%{transform:scale(1.5);opacity:0}70%{transform:scale(.92);opacity:1}100%{transform:scale(1)}}
+.cell.last{box-shadow:0 0 0 3px var(--gold)}
+.cell.target{border-color:var(--lav-d);background:#f7f2ff}
+
+.chip .bg{stroke-width:5}
+.chip.t0 .bg{fill:var(--pink);stroke:var(--pink-d)}
+.chip.t1 .bg{fill:var(--mint);stroke:var(--mint-d)}
+.chip .paw{color:#fff}
+.chip.lock .bg{stroke:var(--lav-d);stroke-width:9}
+.chip.lock .ring{display:block}
+.chip .ring{display:none;fill:none;stroke:var(--lav);stroke-width:4;stroke-dasharray:6 5}
+
+/* ---------- Hand ---------- */
+.hand-wrap{margin-top:14px;background:var(--panel);border-radius:20px;padding:10px 12px 12px;border:2px solid #f6e3ec}
+.hand-head{display:flex;align-items:center;gap:8px;margin-bottom:6px;font-weight:800}
+.hand-head .sp{flex:1}
+.hand{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;padding-top:8px}
+.card{
+  position:relative;width:70px;height:98px;border-radius:12px;background:#fffdfa;border:2px solid #efd9e3;
+  box-shadow:0 3px 0 #ecd3de;padding:0;transition:transform .12s, box-shadow .12s;color:var(--black);
+}
+.card.red{color:var(--red)}
+.card:hover{transform:translateY(-3px)}
+.card.sel{transform:translateY(-10px);border-color:var(--pink-d);box-shadow:0 8px 16px rgba(223,126,163,.35)}
+.card .c-rk{position:absolute;top:3px;left:7px;font-weight:800;font-size:1.25rem;line-height:1}
+.card .c-st{position:absolute;top:22px;left:8px;font-size:1rem;line-height:1}
+.card .c-big{position:absolute;right:6px;bottom:4px;font-size:2.1rem;line-height:1}
+.card .c-cat{position:absolute;right:5px;top:5px;width:26px;height:26px}
+.card.jack{background:linear-gradient(180deg,#f7f1ff,#fff)}
+.card.jack .c-face{position:absolute;left:50%;top:48%;transform:translate(-50%,-50%);width:48px;height:48px}
+.card.jack .c-lbl{position:absolute;bottom:4px;left:0;right:0;font-size:.72rem;font-weight:800;color:var(--lav-d)}
+.card.dead:after{
+  content:"Bài chết";position:absolute;inset:auto 4px 30px;background:#fff;border-radius:6px;
+  font-size:.7rem;font-weight:800;color:var(--muted);border:1px solid #eee;
+}
+@media (max-width:520px){
+  .card{width:calc((100vw - 90px)/7);height:calc((100vw - 90px)/7*1.42);min-width:40px;border-radius:9px}
+  .card .c-rk{font-size:1rem;left:4px}
+  .card .c-st{top:18px;left:5px;font-size:.8rem}
+  .card .c-big{font-size:1.3rem;right:3px}
+  .card .c-cat{display:none}
+  .card.jack .c-face{width:32px;height:32px}
+  .card.jack .c-lbl{font-size:.55rem}
+  .hand{gap:5px}
+  .board{gap:2px}.board-wrap{padding:5px;border-radius:14px}
+  .cell{border-width:1px;border-radius:5px}
+  .cell .mini{display:none}
+  .cell .st{margin-top:22%}
+}
+
+/* ---------- Side ---------- */
+.side{display:flex;flex-direction:column;gap:12px}
+.box{background:var(--panel);border-radius:18px;padding:12px 14px;border:2px solid #f6e3ec}
+.box h3{margin:0 0 6px;font-size:1.05rem}
+.player{display:flex;align-items:center;gap:10px;padding:6px 8px;border-radius:12px}
+.player.turn{background:#fff3f8}
+.player svg{width:34px;height:34px;flex:none}
+.player .nm{font-weight:800;line-height:1.1}
+.player .sub{font-size:.85rem;color:var(--muted)}
+.player .seqs{margin-left:auto;display:flex;gap:3px}
+.pip{width:14px;height:14px;border-radius:50%;border:2px solid var(--lav-d);background:#fff}
+.pip.on{background:var(--lav)}
+.off{color:var(--red);font-size:.8rem;font-weight:800}
+.log{max-height:220px;overflow:auto;font-size:.9rem;margin:0;padding-left:18px}
+.log li{margin:2px 0}
+details summary{cursor:pointer;font-weight:800}
+details ul{padding-left:18px;margin:6px 0 0;font-size:.9rem}
+
+/* ---------- Toast / overlay ---------- */
+#toast{
+  position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(30px);opacity:0;pointer-events:none;
+  background:var(--ink);color:#fff;padding:9px 16px;border-radius:12px;font-weight:700;transition:.25s;z-index:30;max-width:90vw;text-align:center
+}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+#overlay{position:fixed;inset:0;background:rgba(91,71,96,.35);display:grid;place-items:center;z-index:20;padding:16px}
+#overlay .lobby-card h2{margin:4px 0;font-size:2rem}
+</style>
+</head>
+<body>
+
+<!-- SVG sprite -->
+<svg class="sprite" aria-hidden="true">
+  <defs>
+    <symbol id="paw" viewBox="0 0 100 100">
+      <g fill="currentColor">
+        <ellipse cx="25" cy="44" rx="9.5" ry="12.5" transform="rotate(-25 25 44)"/>
+        <ellipse cx="41" cy="27" rx="9.5" ry="12.5" transform="rotate(-8 41 27)"/>
+        <ellipse cx="59" cy="27" rx="9.5" ry="12.5" transform="rotate(8 59 27)"/>
+        <ellipse cx="75" cy="44" rx="9.5" ry="12.5" transform="rotate(25 75 44)"/>
+        <path d="M50 49C63 49 77 61 77 73C77 84 66 85 58 82C54 80.5 46 80.5 42 82C34 85 23 84 23 73C23 61 37 49 50 49Z"/>
+      </g>
+    </symbol>
+    <symbol id="cathead" viewBox="0 0 40 40">
+      <path d="M7 15L9 4L17 10Q20 9.3 23 10L31 4L33 15Q36 21 33 27Q28 35 20 35Q12 35 7 27Q4 21 7 15Z" fill="currentColor" style="stroke:var(--catline,#5b4760)" stroke-width="1.6" stroke-linejoin="round"/>
+      <path d="M10.5 8.5L11.5 13L15 11Z M29.5 8.5L28.5 13L25 11Z" fill="#ffc3d6"/>
+      <path d="M18.6 24.2H21.4L20 26Z" fill="#e37fa4"/>
+      <path d="M20 26Q18.5 28.5 16.5 27.5M20 26Q21.5 28.5 23.5 27.5" fill="none" stroke="#5b4760" stroke-width="1" stroke-linecap="round"/>
+      <path d="M4 23L12 24M4.5 27L12 25.8M36 23L28 24M35.5 27L28 25.8" stroke="#5b4760" stroke-width=".8" stroke-linecap="round" opacity=".7"/>
+    </symbol>
+    <symbol id="cat" viewBox="0 0 40 40">
+      <use href="#cathead"/>
+      <circle cx="14.5" cy="20" r="2.3" fill="#5b4760"/><circle cx="25.5" cy="20" r="2.3" fill="#5b4760"/>
+      <circle cx="15.2" cy="19.3" r=".7" fill="#fff"/><circle cx="26.2" cy="19.3" r=".7" fill="#fff"/>
+    </symbol>
+    <symbol id="catwink" viewBox="0 0 40 40">
+      <use href="#cathead"/>
+      <circle cx="14.5" cy="20" r="2.3" fill="#5b4760"/><circle cx="15.2" cy="19.3" r=".7" fill="#fff"/>
+      <path d="M23 20.5Q25.5 18 28 20.5" fill="none" stroke="#5b4760" stroke-width="1.6" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="bowl" viewBox="0 0 100 100">
+      <path d="M30 44C30 34 44 29 55 31C62 32 67 36 70 40L82 31L80 46L83 60L70 51C66 56 59 59 51 58C39 57 30 52 30 44Z" fill="#ffb27a" stroke="#e08a55" stroke-width="3" stroke-linejoin="round"/>
+      <circle cx="41" cy="41" r="3.5" fill="#5b4760"/><circle cx="42" cy="40" r="1.2" fill="#fff"/>
+      <path d="M52 36Q56 44 52 52" fill="none" stroke="#e08a55" stroke-width="2.5" stroke-linecap="round"/>
+      <path d="M10 58H90Q87 88 50 89Q13 88 10 58Z" fill="#ffc6d9" stroke="#df7ea3" stroke-width="3.5" stroke-linejoin="round"/>
+      <ellipse cx="50" cy="58" rx="40" ry="6" fill="#fff0f6" stroke="#df7ea3" stroke-width="3.5"/>
+      <g transform="translate(40 67) scale(.2)" fill="#fff" opacity=".9"><use href="#paw" width="100" height="100"/></g>
+    </symbol>
+  </defs>
+</svg>
+
+<!-- ============ LOBBY ============ -->
+<section id="lobby">
+  <div class="lobby-card" id="lobbyMain">
+    <svg class="logo" style="color:#ffd7a8;--catline:#5b4760"><use href="#cat"/></svg>
+    <h1><span class="a">Sequence</span> <span class="b">Mèo</span></h1>
+    <p class="tag">Xếp 5 dấu chân thẳng hàng · 1 đấu 1 online</p>
+    <label for="nameInput">Tên của bạn</label>
+    <input id="nameInput" maxlength="16" placeholder="VD: Mèo Mướp" autocomplete="off">
+    <div class="row"><button class="btn" id="createBtn">🐾 Tạo phòng</button></div>
+    <div class="or">hoặc vào phòng bạn bè</div>
+    <label for="codeInput">Mã phòng</label>
+    <input id="codeInput" maxlength="5" placeholder="ABCDE" autocomplete="off">
+    <div class="row"><button class="btn mint" id="joinBtn">Vào phòng</button></div>
+    <div class="msg" id="lobbyMsg"></div>
+  </div>
+
+  <div class="lobby-card waiting hidden" id="lobbyWait">
+    <svg class="logo" style="color:#ffd7a8"><use href="#catwink"/></svg>
+    <h2 style="margin:0">Phòng đã tạo!</h2>
+    <p class="tag" style="margin:4px 0">Gửi mã hoặc link này cho bạn bè</p>
+    <div class="code" id="waitCode">-----</div>
+    <div class="link" id="waitLink"></div>
+    <div class="row"><button class="btn lav" id="copyBtn">📋 Sao chép link</button></div>
+    <p style="margin:16px 0 0;font-weight:700">Đang chờ đối thủ<span class="dots"></span></p>
+    <p class="tag" style="font-size:.85rem;margin:6px 0 0">Giữ tab này mở suốt ván — bạn là chủ phòng.</p>
+  </div>
+</section>
+
+<!-- ============ GAME ============ -->
+<section id="game" class="hidden">
+  <header>
+    <div class="title"><svg style="color:#ffd7a8"><use href="#cat"/></svg>Sequence Mèo</div>
+    <div class="room">Phòng <b id="roomCode"></b></div>
+    <div class="sp"></div>
+    <button class="btn ghost" id="copyBtn2">📋 Link</button>
+    <button class="btn ghost" id="muteBtn">🔊 Meo</button>
+  </header>
+  <div class="layout">
+    <div>
+      <div class="status" id="status"></div>
+      <div class="board-wrap"><div class="board" id="board"></div></div>
+      <div class="hand-wrap">
+        <div class="hand-head">
+          <span>Bài trên tay</span><span class="sp"></span>
+          <button class="btn ghost hidden" id="deadBtn">♻️ Đổi bài chết</button>
+        </div>
+        <div class="hand" id="hand"></div>
+      </div>
+    </div>
+    <aside class="side">
+      <div class="box">
+        <h3>Người chơi</h3>
+        <div id="players"></div>
+        <div style="font-size:.85rem;color:var(--muted);margin-top:6px">Cần <b>2 sequence</b> để thắng · Bộ bài còn <b id="deckCount">0</b> lá</div>
+      </div>
+      <div class="box">
+        <h3>Diễn biến</h3>
+        <ol class="log" id="log" reversed></ol>
+      </div>
+      <div class="box">
+        <details>
+          <summary>Luật chơi</summary>
+          <ul>
+            <li>Chọn 1 lá bài trên tay, rồi bấm vào 1 trong 2 ô có lá đó trên bàn để đặt dấu chân.</li>
+            <li>Tạo hàng 5 dấu chân liên tiếp (ngang, dọc, chéo) = 1 sequence. 4 ô bát cá ở góc tính cho cả hai bên.</li>
+            <li>Hai sequence được dùng chung tối đa 1 ô. Có 2 sequence là thắng.</li>
+            <li><b>J♦ J♣ (mèo 2 mắt)</b>: đặt vào bất kỳ ô trống nào.</li>
+            <li><b>J♠ J♥ (mèo nháy mắt)</b>: gỡ 1 dấu chân của đối thủ (trừ dấu đã nằm trong sequence).</li>
+            <li>Bài chết: cả 2 ô của lá đó đã có chip → được đổi lấy lá mới (1 lần/lượt), rồi đánh tiếp.</li>
+          </ul>
+        </details>
+      </div>
+    </aside>
+  </div>
+</section>
+
+<div id="overlay" class="hidden"><div class="lobby-card" id="overlayCard"></div></div>
+<div id="toast"></div>
+
+<script>
+"use strict";
+/* ================= Constants ================= */
+const PREFIX = "seqmeo-v1-";
+const SUIT = {S:"♠",H:"♥",D:"♦",C:"♣"};
+const RED = s => s==="H"||s==="D";
+const RTXT = r => r==="T" ? "10" : r;
+const LAYOUT = `XX 2S 3S 4S 5S 6S 7S 8S 9S XX
+6C 5C 4C 3C 2C AH KH QH TH TS
+7C AS 2D 3D 4D 5D 6D 7D 9H QS
+8C KS 6C 5C 4C 3C 2C 8D 8H KS
+9C QS 7C 6H 5H 4H AH 9D 7H AS
+TC TS 8C 7H 2H 3H KH TD 6H 2D
+QC 9S 9C 8H 9H TH QH QD 5H 3D
+KC 8S TC QC KC AC AD KD 4H 4D
+AC 7S 6S 5S 4S 3S 2S 2H 3H 5D
+XX AD KD QD TD 9D 8D 7D 6D XX`.split(/\s+/);
+const HAND_SIZE = 7, SEQ_TO_WIN = 2;
+const CAT_COLORS = {S:"#c9c6d9",H:"#ffc6d9",D:"#ffd7a8",C:"#8a8599"};
+const TEAM_NAME = ["Hồng","Mint"];
+
+const isOneEyed = c => c[0]==="J" && (c[1]==="S"||c[1]==="H");
+const isTwoEyed = c => c[0]==="J" && (c[1]==="D"||c[1]==="C");
+const cardLabel = c => RTXT(c[0]) + SUIT[c[1]];
+
+/* ================= Game logic (host-authoritative) ================= */
+function shuffle(a){
+  for(let i=a.length-1;i>0;i--){
+    const r = new Uint32Array(1); crypto.getRandomValues(r);
+    const j = r[0] % (i+1); [a[i],a[j]] = [a[j],a[i]];
+  }
+  return a;
+}
+function newDeck(){
+  const d=[];
+  for(let k=0;k<2;k++) for(const s of "SHDC") for(const r of "A23456789TJQK") d.push(r+s);
+  return shuffle(d);
+}
+function newGame(names, starter){
+  const st = {
+    board: LAYOUT.slice(), chips: Array(100).fill(null), locked: Array(100).fill(false),
+    sequences: [], deck: newDeck(), discard: [], hands: [[],[]], names: names.slice(),
+    turn: starter ?? (Math.random()<.5?0:1), winner: null, moveNo: 0, last: null, deadUsed: false, log: []
+  };
+  for(let i=0;i<HAND_SIZE;i++) for(const p of [0,1]) st.hands[p].push(st.deck.pop());
+  st.log.push(`Ván mới! ${st.names[st.turn]} đi trước.`);
+  return st;
+}
+function draw(st, p){
+  if(!st.deck.length){ st.deck = shuffle(st.discard); st.discard = []; }
+  if(st.deck.length) st.hands[p].push(st.deck.pop());
+}
+function isDead(st, card){
+  if(card[0]==="J") return false;
+  return st.board.every((b,i)=> b!==card || st.chips[i]!==null);
+}
+const owns = (st,i,p) => st.board[i]==="XX" || st.chips[i]===p;
+
+function findSequences(st, p, cell){
+  const dirs=[[0,1],[1,0],[1,1],[1,-1]];
+  let found=0;
+  const r0=Math.floor(cell/10), c0=cell%10;
+  for(const [dr,dc] of dirs){
+    let r=r0, c=c0;
+    while(r-dr>=0&&r-dr<10&&c-dc>=0&&c-dc<10&&owns(st,(r-dr)*10+c-dc,p)){ r-=dr; c-=dc; }
+    const run=[];
+    while(r>=0&&r<10&&c>=0&&c<10&&owns(st,r*10+c,p)){ run.push(r*10+c); r+=dr; c+=dc; }
+    if(run.length<5) continue;
+    const k = run.indexOf(cell);
+    for(let s=Math.max(0,k-4); s<=Math.min(k, run.length-5); s++){
+      const win = run.slice(s,s+5);
+      const ok = st.sequences.every(q => q.cells.filter(x=>win.includes(x)).length<=1);
+      if(ok){
+        st.sequences.push({team:p, cells:win});
+        win.forEach(x=>st.locked[x]=true);
+        found++;
+      }
+    }
+  }
+  return found;
+}
+const seqCount = (st,p) => st.sequences.filter(s=>s.team===p).length;
+
+function applyAction(st, p, a){
+  if(st.winner!==null) return "Ván đã kết thúc.";
+  if(st.turn!==p) return "Chưa đến lượt bạn.";
+  const hi = st.hands[p].indexOf(a.card);
+  if(hi<0) return "Bạn không có lá bài này.";
+  const who = st.names[p];
+
+  if(a.type==="dead"){
+    if(st.deadUsed) return "Mỗi lượt chỉ đổi bài chết 1 lần.";
+    if(!isDead(st,a.card)) return "Lá này chưa phải bài chết.";
+    st.hands[p].splice(hi,1); st.discard.push(a.card); draw(st,p);
+    st.deadUsed = true;
+    st.log.push(`${who} đổi bài chết ${cardLabel(a.card)}.`);
+    return null;
+  }
+  if(a.type!=="play") return "Hành động không hợp lệ.";
+  const i = a.cell;
+  if(!(i>=0&&i<100) || st.board[i]==="XX") return "Không thể chọn ô góc.";
+  let kind="place";
+  if(isOneEyed(a.card)){
+    if(st.chips[i]!==1-p) return "Mèo nháy mắt chỉ gỡ được dấu chân của đối thủ.";
+    if(st.locked[i]) return "Dấu chân này đã nằm trong sequence, không gỡ được.";
+    st.chips[i]=null; kind="remove";
+  } else {
+    if(st.chips[i]!==null) return "Ô này đã có dấu chân.";
+    if(!isTwoEyed(a.card) && st.board[i]!==a.card) return "Lá bài không khớp với ô này.";
+    st.chips[i]=p;
+  }
+  st.hands[p].splice(hi,1); st.discard.push(a.card); draw(st,p);
+  const cellTxt = cardLabel(st.board[i]);
+  if(kind==="remove") st.log.push(`${who} dùng ${cardLabel(a.card)} gỡ dấu chân ở ${cellTxt}.`);
+  else st.log.push(`${who} đánh ${cardLabel(a.card)} → ${cellTxt}.`);
+  if(kind==="place"){
+    const n = findSequences(st,p,i);
+    if(n){ kind="seq"; st.log.push(`🎉 ${who} tạo được sequence! (${seqCount(st,p)}/${SEQ_TO_WIN})`); }
+    if(seqCount(st,p)>=SEQ_TO_WIN){ st.winner=p; kind="win"; st.log.push(`🏆 ${who} thắng!`); }
+  }
+  st.moveNo++; st.last={cell:i, team:p, kind};
+  st.deadUsed=false;
+  if(st.winner===null) st.turn = 1-p;
+  if(st.log.length>60) st.log.splice(0, st.log.length-60);
+  return null;
+}
+function viewFor(st, p){
+  return {
+    board:st.board, chips:st.chips, locked:st.locked, names:st.names, turn:st.turn, winner:st.winner,
+    moveNo:st.moveNo, last:st.last, deadUsed:st.deadUsed, log:st.log,
+    hand:st.hands[p], oppCount:st.hands[1-p].length, deckCount:st.deck.length,
+    seqs:[seqCount(st,0), seqCount(st,1)], me:p
+  };
+}
+
+/* ================= Sound ================= */
+let ac=null, muted=false;
+try{ muted = localStorage.getItem("seqmeo-muted")==="1"; }catch(e){}
+function audio(){ if(!ac){ try{ ac=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} } if(ac&&ac.state==="suspended") ac.resume(); return ac; }
+function meowOnce(t, base, len){
+  const o=ac.createOscillator(), f=ac.createBiquadFilter(), f2=ac.createBiquadFilter(), g=ac.createGain();
+  o.type="sawtooth"; f.type="bandpass"; f.Q.value=4; f2.type="lowpass"; f2.frequency.value=3200;
+  o.frequency.setValueAtTime(base*.75,t);
+  o.frequency.linearRampToValueAtTime(base*1.35,t+len*.3);
+  o.frequency.linearRampToValueAtTime(base*.85,t+len);
+  f.frequency.setValueAtTime(700,t);
+  f.frequency.linearRampToValueAtTime(1900,t+len*.3);
+  f.frequency.linearRampToValueAtTime(900,t+len);
+  g.gain.setValueAtTime(.0001,t);
+  g.gain.exponentialRampToValueAtTime(.35,t+.05);
+  g.gain.setValueAtTime(.3,t+len*.6);
+  g.gain.exponentialRampToValueAtTime(.0001,t+len);
+  o.connect(f).connect(f2).connect(g).connect(ac.destination);
+  o.start(t); o.stop(t+len+.05);
+}
+function meow(kind){
+  if(muted || !audio()) return;
+  const t=ac.currentTime+.02;
+  if(kind==="remove"){ meowOnce(t,300,.5); }
+  else if(kind==="seq"){ meowOnce(t,560,.3); meowOnce(t+.33,700,.4); }
+  else if(kind==="win"){ meowOnce(t,520,.28); meowOnce(t+.3,640,.28); meowOnce(t+.6,800,.55); }
+  else meowOnce(t,480+Math.random()*120,.38);
+}
+
+/* ================= Networking (PeerJS) ================= */
+let peer=null, conn=null, isHost=false, roomCode="", myName="";
+let state=null, guestConn=null, guestName="";
+let view=null, prevMove=-1, selected=null, joinTimer=null;
+
+const $ = id => document.getElementById(id);
+function toast(t){ const el=$("toast"); el.textContent=t; el.classList.add("show"); clearTimeout(el._t); el._t=setTimeout(()=>el.classList.remove("show"),2600); }
+function lobbyMsg(t){ $("lobbyMsg").textContent=t||""; }
+function genCode(){ const A="ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; let s=""; const r=new Uint32Array(5); crypto.getRandomValues(r); for(const x of r) s+=A[x%A.length]; return s; }
+function roomLink(){ return location.origin+location.pathname+"?room="+roomCode; }
+function getName(){
+  const n=$("nameInput").value.trim();
+  if(!n){ lobbyMsg("Nhập tên trước đã nha 🐱"); $("nameInput").focus(); return null; }
+  try{ localStorage.setItem("seqmeo-name",n); }catch(e){}
+  return n;
+}
+function lockLobby(b){ $("createBtn").disabled=b; $("joinBtn").disabled=b; }
+
+function createRoom(){
+  const n=getName(); if(!n) return;
+  if(typeof Peer==="undefined"){ lobbyMsg("Không tải được thư viện kết nối, kiểm tra mạng."); return; }
+  audio(); myName=n; isHost=true; lockLobby(true); lobbyMsg("");
+  roomCode=genCode();
+  peer=new Peer(PREFIX+roomCode);
+  peer.on("open",()=>{
+    $("lobbyMain").classList.add("hidden"); $("lobbyWait").classList.remove("hidden");
+    $("waitCode").textContent=roomCode; $("waitLink").textContent=roomLink();
+    history.replaceState(null,"","?room="+roomCode+"&host=1");
+  });
+  peer.on("connection", onGuestConn);
+  peer.on("disconnected",()=>{ if(!peer.destroyed) peer.reconnect(); });
+  peer.on("error",e=>{
+    if(e.type==="unavailable-id"){ peer.destroy(); isHost=false; createRoom(); return; }
+    if(e.type==="peer-unavailable") return;
+    console.warn(e); toast("Lỗi kết nối: "+e.type); lockLobby(false);
+  });
+}
+function onGuestConn(c){
+  c.on("data", m=>{
+    if(!m||typeof m!=="object") return;
+    if(m.t==="hello"){
+      if(guestConn && guestConn!==c && guestConn.open){ c.send({t:"full"}); setTimeout(()=>c.close(),300); return; }
+      guestConn=c; guestName=String(m.name||"Mèo khách").slice(0,16);
+      if(!state){ state=newGame([myName,guestName]); startGameUI(); }
+      else { state.names[1]=guestName; state.log.push(`${guestName} đã vào lại phòng.`); }
+      broadcast();
+    } else if(m.t==="act" && c===guestConn){
+      const err=applyAction(state,1,m.a||{});
+      if(err) c.send({t:"err",msg:err});
+      broadcast();
+    }
+  });
+  c.on("close",()=>{ if(c===guestConn){ guestConn=null; if(state){ state.log.push(`${guestName} mất kết nối…`); broadcast(); } } });
+}
+function broadcast(){
+  onView(viewFor(state,0));
+  if(guestConn && guestConn.open) guestConn.send({t:"state", view:viewFor(state,1), room:roomCode});
+}
+
+function joinRoom(){
+  const n=getName(); if(!n) return;
+  const code=$("codeInput").value.trim().toUpperCase();
+  if(code.length!==5){ lobbyMsg("Mã phòng gồm 5 ký tự."); return; }
+  if(typeof Peer==="undefined"){ lobbyMsg("Không tải được thư viện kết nối, kiểm tra mạng."); return; }
+  audio(); myName=n; roomCode=code; isHost=false; lockLobby(true); lobbyMsg("Đang kết nối…");
+  $("lobbyMsg").style.color="var(--muted)";
+  if(peer) peer.destroy();
+  peer=new Peer();
+  peer.on("open",()=>connectToHost());
+  peer.on("error",e=>{
+    $("lobbyMsg").style.color="";
+    if(e.type==="peer-unavailable"){ clearTimeout(joinTimer); if(!view){ lobbyMsg("Không tìm thấy phòng "+roomCode+". Kiểm tra lại mã."); lockLobby(false); } else showDisconnected(); }
+    else { console.warn(e); lobbyMsg("Lỗi kết nối: "+e.type); lockLobby(false); }
+  });
+  peer.on("disconnected",()=>{ if(!peer.destroyed) peer.reconnect(); });
+}
+function connectToHost(){
+  conn=peer.connect(PREFIX+roomCode,{reliable:true});
+  clearTimeout(joinTimer);
+  joinTimer=setTimeout(()=>{ if(!view){ lobbyMsg("Kết nối quá lâu. Chủ phòng còn mở tab không?"); lockLobby(false); } },15000);
+  conn.on("open",()=>{ conn.send({t:"hello",name:myName}); });
+  conn.on("data",m=>{
+    if(!m) return;
+    if(m.t==="state"){ clearTimeout(joinTimer); if($("game").classList.contains("hidden")) startGameUI(); closeOverlay("dc"); onView(m.view); }
+    else if(m.t==="err") toast(m.msg);
+    else if(m.t==="full"){ lobbyMsg("Phòng đã đủ 2 người."); lockLobby(false); }
+  });
+  conn.on("close",()=>{ if(view) showDisconnected(); });
+}
+function showDisconnected(){
+  openOverlay(`<h2>😿 Mất kết nối</h2><p class="tag">Không liên lạc được với chủ phòng.</p>
+    <div class="row"><button class="btn mint" id="rejoinBtn">Kết nối lại</button></div>`, "dc");
+  $("rejoinBtn").onclick=()=>{ $("rejoinBtn").disabled=true; $("rejoinBtn").textContent="Đang thử…"; connectToHost(); };
+}
+function sendAction(a){
+  if(isHost){ const err=applyAction(state,0,a); if(err) toast(err); broadcast(); }
+  else if(conn && conn.open) conn.send({t:"act",a});
+  else toast("Chưa kết nối với chủ phòng.");
+}
+
+/* ================= UI ================= */
+function startGameUI(){
+  $("lobby").classList.add("hidden"); $("game").classList.remove("hidden");
+  $("roomCode").textContent=roomCode;
+  if(!isHost) history.replaceState(null,"","?room="+roomCode);
+}
+const chipSVG = (team, lock, isNew) =>
+  `<svg class="chip t${team}${lock?" lock":""}${isNew?" new":""}" viewBox="0 0 100 100">
+     <circle class="bg" cx="50" cy="50" r="44"/><circle class="ring" cx="50" cy="50" r="36"/>
+     <use class="paw" href="#paw" x="18" y="16" width="64" height="64"/></svg>`;
+
+function onView(v){
+  const moved = view && v.moveNo!==prevMove;
+  if(moved && v.last) meow(v.last.kind);
+  if(!view || v.moveNo!==prevMove || v.hand.join()!==view.hand.join()) selected=null;
+  prevMove=v.moveNo; view=v;
+  render(moved);
+  if(v.winner!==null) showWinner(); else closeOverlay("win");
+}
+
+function render(animate){
+  const v=view, me=v.me, myTurn=v.turn===me && v.winner===null;
+  const selCard = selected!==null ? v.hand[selected] : null;
+
+  // status
+  const st=$("status");
+  st.classList.toggle("my", myTurn);
+  let txt;
+  if(v.winner!==null) txt = v.winner===me ? "🏆 Bạn thắng rồi!" : `😿 ${v.names[v.winner]} thắng.`;
+  else if(myTurn){
+    if(!selCard) txt="Lượt của bạn — chọn 1 lá bài";
+    else if(isTwoEyed(selCard)) txt="Mèo 2 mắt: bấm vào ô trống bất kỳ";
+    else if(isOneEyed(selCard)) txt="Mèo nháy mắt: bấm vào dấu chân đối thủ để gỡ";
+    else txt=`Đặt ${cardLabel(selCard)} vào 1 trong 2 ô trên bàn`;
+  } else txt=`Đang chờ ${v.names[v.turn]}…`;
+  st.innerHTML=`<span class="dot" style="background:var(--${v.turn===0?"pink":"mint"})"></span>${txt}`;
+
+  // board
+  let h="";
+  for(let i=0;i<100;i++){
+    const c=v.board[i];
+    const last = v.last && v.last.cell===i;
+    if(c==="XX"){ h+=`<div class="cell corner" data-i="${i}"><svg><use href="#bowl"/></svg></div>`; continue; }
+    const chip = v.chips[i];
+    let target=false;
+    if(selCard && myTurn){
+      if(isOneEyed(selCard)) target = chip===1-me && !v.locked[i];
+    }
+    h+=`<div class="cell ${RED(c[1])?"red":"black"}${last?" last":""}${target?" target":""}" data-i="${i}">
+      <span class="rk">${RTXT(c[0])}</span><span class="st">${SUIT[c[1]]}</span>
+      <svg class="mini" style="color:${CAT_COLORS[c[1]]}"><use href="#cat"/></svg>
+      ${chip!==null ? chipSVG(chip, v.locked[i], animate && last && v.last.kind!=="remove") : ""}
+    </div>`;
+  }
+  $("board").innerHTML=h;
+
+  // hand
+  $("hand").innerHTML = v.hand.map((c,i)=>{
+    const red=RED(c[1]), sel=i===selected?" sel":"";
+    if(c[0]==="J"){
+      const one=isOneEyed(c);
+      return `<button class="card jack ${red?"red":""}${sel}" data-h="${i}" title="${one?"Gỡ 1 dấu chân đối thủ":"Đặt vào ô trống bất kỳ"}">
+        <span class="c-rk">J</span><span class="c-st">${SUIT[c[1]]}</span>
+        <svg class="c-face" style="color:${one?"#d9ccf5":"#ffd7a8"}"><use href="#${one?"catwink":"cat"}"/></svg>
+        <span class="c-lbl">${one?"GỠ CHIP":"JOKER"}</span></button>`;
+    }
+    const dead = isDeadView(c) ? " dead" : "";
+    return `<button class="card ${red?"red":""}${sel}${dead}" data-h="${i}">
+      <span class="c-rk">${RTXT(c[0])}</span><span class="c-st">${SUIT[c[1]]}</span>
+      <svg class="c-cat" style="color:${CAT_COLORS[c[1]]}"><use href="#cat"/></svg>
+      <span class="c-big">${SUIT[c[1]]}</span></button>`;
+  }).join("");
+
+  const showDead = myTurn && selCard && isDeadView(selCard) && !v.deadUsed;
+  $("deadBtn").classList.toggle("hidden", !showDead);
+
+  // players
+  const opp=1-me;
+  const oppOnline = isHost ? !!(guestConn&&guestConn.open) : true;
+  $("players").innerHTML=[me,opp].map(p=>`
+    <div class="player${v.turn===p&&v.winner===null?" turn":""}">
+      <svg style="color:var(--${p===0?"pink":"mint"})"><use href="#paw"/></svg>
+      <div><div class="nm">${esc(v.names[p])}${p===me?" (bạn)":""}</div>
+        <div class="sub">Đội ${TEAM_NAME[p]} · ${p===me?v.hand.length:v.oppCount} lá
+          ${p===opp&&!oppOnline?'<span class="off">· mất kết nối</span>':""}</div></div>
+      <div class="seqs">${Array.from({length:SEQ_TO_WIN},(_,k)=>`<span class="pip${k<v.seqs[p]?" on":""}"></span>`).join("")}</div>
+    </div>`).join("");
+  $("deckCount").textContent=v.deckCount;
+  $("log").innerHTML = v.log.slice().reverse().map(l=>`<li>${esc(l)}</li>`).join("");
+}
+function isDeadView(c){ return c[0]!=="J" && view.board.every((b,i)=>b!==c || view.chips[i]!==null); }
+function esc(s){ return String(s).replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch])); }
+
+function onCellClick(i){
+  const v=view; if(!v) return;
+  if(v.winner!==null) return;
+  if(v.turn!==v.me){ toast("Chưa đến lượt bạn 🐾"); return; }
+  if(selected===null){ toast("Chọn 1 lá bài trên tay trước"); return; }
+  const c=v.hand[selected];
+  if(v.board[i]==="XX"){ toast("Ô bát cá là ô tự do, không cần đặt"); return; }
+  if(isOneEyed(c)){
+    if(v.chips[i]!==1-v.me){ toast("Chọn dấu chân của đối thủ để gỡ"); return; }
+    if(v.locked[i]){ toast("Dấu chân trong sequence không gỡ được"); return; }
+  } else {
+    if(v.chips[i]!==null){ toast("Ô này đã có dấu chân"); return; }
+    if(!isTwoEyed(c) && v.board[i]!==c){ toast(`Ô này không phải ${cardLabel(c)}`); return; }
+  }
+  sendAction({type:"play", card:c, cell:i});
+}
+
+function openOverlay(html, tag){ $("overlayCard").innerHTML=html; $("overlay").dataset.tag=tag; $("overlay").classList.remove("hidden"); }
+function closeOverlay(tag){ if($("overlay").dataset.tag===tag) $("overlay").classList.add("hidden"); }
+function showWinner(){
+  const v=view, won=v.winner===v.me;
+  openOverlay(`<svg class="logo" style="color:${won?"#ffd7a8":"#d9ccf5"}"><use href="#${won?"cat":"catwink"}"/></svg>
+    <h2>${won?"🏆 Bạn thắng!":"😿 Thua mất rồi"}</h2>
+    <p class="tag">${esc(v.names[v.winner])} hoàn thành ${SEQ_TO_WIN} sequence.</p>
+    <div class="row">${isHost?'<button class="btn" id="againBtn">🐾 Ván mới</button>':'<p class="tag" style="margin:0">Chờ chủ phòng mở ván mới…</p>'}</div>
+    <div class="row"><button class="btn ghost" id="viewBoardBtn">Xem lại bàn</button></div>`, "win");
+  if(isHost) $("againBtn").onclick=()=>{ state=newGame(state.names, 1-state.winner); prevMove=-1; broadcast(); };
+  $("viewBoardBtn").onclick=()=>$("overlay").classList.add("hidden");
+}
+
+/* ================= Events ================= */
+$("createBtn").onclick=createRoom;
+$("joinBtn").onclick=joinRoom;
+$("nameInput").addEventListener("keydown",e=>{ if(e.key==="Enter") ($("codeInput").value.trim()?joinRoom:createRoom)(); });
+$("codeInput").addEventListener("keydown",e=>{ if(e.key==="Enter") joinRoom(); });
+$("codeInput").addEventListener("input",e=>{ e.target.value=e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,""); });
+function copyLink(){ const l=roomLink(); (navigator.clipboard?navigator.clipboard.writeText(l):Promise.reject()).then(()=>toast("Đã sao chép link phòng!"),()=>prompt("Sao chép link này:",l)); }
+$("copyBtn").onclick=copyLink; $("copyBtn2").onclick=copyLink;
+$("board").addEventListener("click",e=>{ const c=e.target.closest(".cell"); if(c) onCellClick(+c.dataset.i); });
+$("hand").addEventListener("click",e=>{
+  const b=e.target.closest(".card"); if(!b||!view) return;
+  const i=+b.dataset.h; selected = selected===i ? null : i; render(false);
+});
+$("deadBtn").onclick=()=>{ if(selected!==null) sendAction({type:"dead", card:view.hand[selected]}); };
+function syncMute(){ $("muteBtn").textContent = muted ? "🔇 Tắt" : "🔊 Meo"; }
+$("muteBtn").onclick=()=>{ muted=!muted; try{ localStorage.setItem("seqmeo-muted",muted?"1":"0"); }catch(e){} syncMute(); if(!muted) meow("place"); };
+syncMute();
+
+// prefill from URL / storage
+try{ $("nameInput").value = localStorage.getItem("seqmeo-name")||""; }catch(e){}
+const qs=new URLSearchParams(location.search);
+if(qs.get("room") && !qs.get("host")){ $("codeInput").value=qs.get("room").toUpperCase().slice(0,5); }
+if(qs.get("host")) history.replaceState(null,"",location.pathname);
+window.addEventListener("beforeunload",e=>{ if(isHost && state && state.winner===null){ e.preventDefault(); e.returnValue=""; } });
+</script>
+</body>
+</html>
