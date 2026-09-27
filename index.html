@@ -607,7 +607,7 @@ function render(animate){
     if(c==="XX"){ h+=`<div class="cell corner" data-i="${i}"><svg><use href="#bowl"/></svg></div>`; continue; }
     const chip = v.chips[i];
     let target=false;
-    if(selCard && myTurn){
+    if(selCard && v.winner===null){
       if(isOneEyed(selCard)) target = chip===1-me && !v.locked[i];
       else if(isTwoEyed(selCard)) target = chip===null;
       else target = chip===null && c===selCard;
