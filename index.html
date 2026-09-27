@@ -8,6 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&display=swap">
 <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mqtt@5.10.1/dist/mqtt.min.js"></script>
 <style>
 :root{
   --bg:#fff4f8; --bg2:#f3f0ff; --panel:#ffffff; --ink:#5b4760; --muted:#a08fa6;
@@ -233,7 +234,7 @@ details ul{padding-left:18px;margin:6px 0 0;font-size:.9rem}
     <input id="codeInput" maxlength="5" placeholder="ABCDE" autocomplete="off">
     <div class="row"><button class="btn mint" id="joinBtn">Vào phòng</button></div>
     <div class="msg" id="lobbyMsg"></div>
-    <div style="margin-top:10px;font-size:.8rem;color:var(--muted)">Phiên bản 1.3 · 3 lá trên tay</div>
+    <div style="margin-top:10px;font-size:.8rem;color:var(--muted)">Phiên bản 1.4 · có kết nối dự phòng</div>
   </div>
 
   <div class="lobby-card waiting hidden" id="lobbyWait">
@@ -245,6 +246,7 @@ details ul{padding-left:18px;margin:6px 0 0;font-size:.9rem}
     <div class="row"><button class="btn lav" id="copyBtn">📋 Sao chép link</button></div>
     <p style="margin:16px 0 0;font-weight:700">Đang chờ đối thủ<span class="dots"></span></p>
     <p class="tag" style="font-size:.85rem;margin:6px 0 0">Giữ tab này mở suốt ván — bạn là chủ phòng.</p>
+    <p class="tag" style="font-size:.8rem;margin:4px 0 0" id="netInfo">Trực tiếp … · Dự phòng …</p>
   </div>
 </section>
 
@@ -252,7 +254,7 @@ details ul{padding-left:18px;margin:6px 0 0;font-size:.9rem}
 <section id="game" class="hidden">
   <header>
     <div class="title"><svg style="color:#ffd7a8"><use href="#cat"/></svg>Sequence Mèo</div>
-    <div class="room">Phòng <b id="roomCode"></b></div><div class="room" style="font-size:.8rem">v1.3</div>
+    <div class="room">Phòng <b id="roomCode"></b> <span id="netMode"></span></div><div class="room" style="font-size:.8rem">v1.4</div>
     <div class="sp"></div>
     <button class="btn ghost" id="copyBtn2">📋 Link</button>
     <button class="btn ghost" id="muteBtn">🔊 Meo</button>
@@ -463,15 +465,23 @@ function meow(kind){
   else meowOnce(t,480+Math.random()*120,.38);
 }
 
-/* ================= Networking (PeerJS) ================= */
-let peer=null, conn=null, isHost=false, roomCode="", myName="";
-let state=null, guestConn=null, guestName="";
-let view=null, prevMove=-1, selected=null, joinTimer=null;
+/* ================= Networking =================
+   1) Trực tiếp: PeerJS (WebRTC).
+   2) Dự phòng: MQTT qua WebSocket tới broker công cộng — dùng khi mạng chặn WebRTC. */
+const BROKERS = ["wss://broker.emqx.io:8084/mqtt", "wss://broker.hivemq.com:8884/mqtt"];
+const topicOf = code => "seqmeo/v1/" + code;
+let peer=null, isHost=false, roomCode="", myName="";
+let state=null, guestConn=null, guestName="", guestCid=null;
+let view=null, prevMove=-1, selected=null;
+let hostRelays=[], relayConns=new Map();
+let chans=[], activeCh=null, attempt=0, guestTimers=[];
+const netState={p2p:false, relay:false};
 
 const $ = id => document.getElementById(id);
 function toast(t){ const el=$("toast"); el.textContent=t; el.classList.add("show"); clearTimeout(el._t); el._t=setTimeout(()=>el.classList.remove("show"),2600); }
-function lobbyMsg(t){ $("lobbyMsg").textContent=t||""; }
+function lobbyMsg(t, muted){ $("lobbyMsg").textContent=t||""; $("lobbyMsg").style.color=muted?"var(--muted)":""; }
 function genCode(){ const A="ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; let s=""; const r=new Uint32Array(5); crypto.getRandomValues(r); for(const x of r) s+=A[x%A.length]; return s; }
+const CID = (()=>{ try{ let c=sessionStorage.getItem("seqmeo-cid"); if(!c){ c=genCode()+genCode(); sessionStorage.setItem("seqmeo-cid",c); } return c; }catch(e){ return genCode()+genCode(); } })();
 function roomLink(){ return location.origin+location.pathname+"?room="+roomCode; }
 function getName(){
   const n=$("nameInput").value.trim();
@@ -480,34 +490,63 @@ function getName(){
   return n;
 }
 function lockLobby(b){ $("createBtn").disabled=b; $("joinBtn").disabled=b; }
+const decode = buf => { try{ return JSON.parse(typeof buf==="string"?buf:new TextDecoder().decode(buf)); }catch(e){ return null; } };
+function setNet(kind, ok){ netState[kind]=ok; const el=$("netInfo"); if(el) el.textContent=`Trực tiếp ${netState.p2p?"✓":"…"} · Dự phòng ${netState.relay?"✓":"…"}`; }
+const libsMissing = () => typeof Peer==="undefined" && typeof mqtt==="undefined";
 
+/* Kết nối qua broker, giả lập giao diện giống DataConnection của PeerJS */
+class RelayConn{
+  constructor(client, topic){ this.client=client; this.topic=topic; this.open=true; this.h={}; this.last=Date.now(); }
+  on(ev,f){ (this.h[ev]=this.h[ev]||[]).push(f); }
+  emit(ev,x){ (this.h[ev]||[]).forEach(f=>f(x)); }
+  send(m){ if(this.open) this.client.publish(this.topic, JSON.stringify(m), {qos:1}); }
+  close(){ if(!this.open) return; this.open=false; this.emit("close"); }
+}
+
+/* ---------- Chủ phòng ---------- */
 function createRoom(){
   const n=getName(); if(!n) return;
-  if(typeof Peer==="undefined"){ lobbyMsg("Không tải được thư viện kết nối, kiểm tra mạng."); return; }
+  if(libsMissing()){ lobbyMsg("Không tải được thư viện kết nối, kiểm tra mạng."); return; }
   audio(); myName=n; isHost=true; lockLobby(true); lobbyMsg("");
   roomCode=genCode();
-  peer=new Peer(PREFIX+roomCode);
-  peer.on("open",()=>{
-    $("lobbyMain").classList.add("hidden"); $("lobbyWait").classList.remove("hidden");
-    $("waitCode").textContent=roomCode; $("waitLink").textContent=roomLink();
-    history.replaceState(null,"","?room="+roomCode+"&host=1");
-  });
-  peer.on("connection", onGuestConn);
-  peer.on("disconnected",()=>{ if(!peer.destroyed) peer.reconnect(); });
-  peer.on("error",e=>{
-    if(e.type==="unavailable-id"){ peer.destroy(); isHost=false; createRoom(); return; }
-    if(e.type==="peer-unavailable") return;
-    console.warn(e); toast("Lỗi kết nối: "+e.type); lockLobby(false);
-  });
+  $("lobbyMain").classList.add("hidden"); $("lobbyWait").classList.remove("hidden");
+  $("waitCode").textContent=roomCode; $("waitLink").textContent=roomLink();
+  history.replaceState(null,"","?room="+roomCode+"&host=1");
+  setNet("p2p",false);
+  if(typeof Peer!=="undefined"){
+    peer=new Peer(PREFIX+roomCode);
+    peer.on("open",()=>setNet("p2p",true));
+    peer.on("connection", onGuestConn);
+    peer.on("disconnected",()=>{ setNet("p2p",false); if(!peer.destroyed) peer.reconnect(); });
+    peer.on("error",e=>{ if(e.type!=="peer-unavailable") console.warn("peer", e.type); });
+  }
+  if(typeof mqtt!=="undefined"){
+    hostRelays = BROKERS.map(url=>{
+      const cl = mqtt.connect(url,{connectTimeout:8000, reconnectPeriod:4000, clean:true});
+      cl.on("connect",()=>cl.subscribe(topicOf(roomCode)+"/h",{qos:1},err=>{ if(!err) setNet("relay",true); }));
+      cl.on("error",e=>console.warn("mqtt", url, e && e.message));
+      cl.on("message",(t,buf)=>{
+        const m=decode(buf); if(!m||!m.gid) return;
+        const key=url+"|"+m.gid;
+        let rc=relayConns.get(key);
+        if(!rc || !rc.open){ rc=new RelayConn(cl, topicOf(roomCode)+"/g/"+m.gid); relayConns.set(key,rc); onGuestConn(rc); }
+        rc.last=Date.now();
+        if(m.t==="ping") rc.send({t:"pong"}); else rc.emit("data",m);
+      });
+      return cl;
+    });
+    setInterval(()=>{ for(const [k,rc] of relayConns){ if(rc.open && Date.now()-rc.last>20000){ rc.close(); relayConns.delete(k); } } },5000);
+  }
 }
 function onGuestConn(c){
   c.on("data", m=>{
     if(!m||typeof m!=="object") return;
     if(m.t==="hello"){
-      if(guestConn && guestConn!==c && guestConn.open){ c.send({t:"full"}); setTimeout(()=>c.close(),300); return; }
-      guestConn=c; guestName=String(m.name||"Mèo khách").slice(0,16);
+      if(guestConn && guestConn!==c && guestConn.open && guestCid!==m.cid){ c.send({t:"full"}); setTimeout(()=>c.close(),300); return; }
+      if(guestConn && guestConn!==c){ const old=guestConn; guestConn=c; old.close(); }
+      guestConn=c; guestCid=m.cid; guestName=String(m.name||"Mèo khách").slice(0,16);
       if(!state){ state=newGame([myName,guestName]); startGameUI(); }
-      else { state.names[1]=guestName; state.log.push(`${guestName} đã vào lại phòng.`); }
+      else state.names[1]=guestName;
       broadcast();
     } else if(m.t==="act" && c===guestConn){
       const err=applyAction(state,1,m.a||{});
@@ -522,44 +561,96 @@ function broadcast(){
   if(guestConn && guestConn.open) guestConn.send({t:"state", view:viewFor(state,1), room:roomCode});
 }
 
+/* ---------- Khách ---------- */
 function joinRoom(){
   const n=getName(); if(!n) return;
   const code=$("codeInput").value.trim().toUpperCase();
   if(code.length!==5){ lobbyMsg("Mã phòng gồm 5 ký tự."); return; }
-  if(typeof Peer==="undefined"){ lobbyMsg("Không tải được thư viện kết nối, kiểm tra mạng."); return; }
-  audio(); myName=n; roomCode=code; isHost=false; lockLobby(true); lobbyMsg("Đang kết nối…");
-  $("lobbyMsg").style.color="var(--muted)";
-  if(peer) peer.destroy();
-  peer=new Peer();
-  peer.on("open",()=>connectToHost());
-  peer.on("error",e=>{
-    $("lobbyMsg").style.color="";
-    if(e.type==="peer-unavailable"){ clearTimeout(joinTimer); if(!view){ lobbyMsg("Không tìm thấy phòng "+roomCode+". Kiểm tra lại mã."); lockLobby(false); } else showDisconnected(); }
-    else { console.warn(e); lobbyMsg("Lỗi kết nối: "+e.type); lockLobby(false); }
-  });
-  peer.on("disconnected",()=>{ if(!peer.destroyed) peer.reconnect(); });
+  if(libsMissing()){ lobbyMsg("Không tải được thư viện kết nối, kiểm tra mạng."); return; }
+  audio(); myName=n; roomCode=code; isHost=false; lockLobby(true);
+  startGuestConnect();
 }
-function connectToHost(){
-  conn=peer.connect(PREFIX+roomCode,{reliable:true});
-  clearTimeout(joinTimer);
-  joinTimer=setTimeout(()=>{ if(!view){ lobbyMsg("Kết nối quá lâu. Chủ phòng còn mở tab không?"); lockLobby(false); } },15000);
-  conn.on("open",()=>{ conn.send({t:"hello",name:myName}); });
-  conn.on("data",m=>{
-    if(!m) return;
-    if(m.t==="state"){ clearTimeout(joinTimer); if($("game").classList.contains("hidden")) startGameUI(); closeOverlay("dc"); onView(m.view); }
-    else if(m.t==="err") toast(m.msg);
-    else if(m.t==="full"){ lobbyMsg("Phòng đã đủ 2 người."); lockLobby(false); }
-  });
-  conn.on("close",()=>{ if(view) showDisconnected(); });
+function stopGuest(){
+  guestTimers.forEach(t=>{ clearTimeout(t); clearInterval(t); }); guestTimers=[];
+  chans.forEach(ch=>ch.close()); chans=[]; activeCh=null;
 }
-function showDisconnected(){
-  openOverlay(`<h2>😿 Mất kết nối</h2><p class="tag">Không liên lạc được với chủ phòng.</p>
+function startGuestConnect(){
+  stopGuest();
+  const my=++attempt;
+  if(!view) lobbyMsg("Đang kết nối trực tiếp…", true);
+  let relayStarted=false;
+  const startRelay=()=>{
+    if(relayStarted || my!==attempt || activeCh) return; relayStarted=true;
+    if(!view) lobbyMsg("Đang thử kết nối qua máy chủ trung gian…", true);
+    BROKERS.forEach((url,i)=>guestTimers.push(setTimeout(()=>{ if(my===attempt && !activeCh) guestRelay(url); }, i*2500)));
+  };
+  if(typeof Peer!=="undefined") guestP2P(startRelay); else startRelay();
+  guestTimers.push(setTimeout(startRelay, 6000));
+  guestTimers.push(setTimeout(()=>{
+    if(my!==attempt || activeCh) return;
+    stopGuest();
+    if(view) showDisconnected(true);
+    else { lobbyMsg(`Không vào được phòng ${roomCode}. Kiểm tra mã phòng và chắc chắn chủ phòng vẫn đang mở tab game.`); lockLobby(false); }
+  }, 25000));
+}
+function guestP2P(onFail){
+  const p=new Peer();
+  let c=null;
+  const ch={kind:"p2p", send:m=>{ if(c&&c.open) c.send(m); }, close:()=>{ try{ p.destroy(); }catch(e){} }};
+  chans.push(ch);
+  p.on("open",()=>{
+    c=p.connect(PREFIX+roomCode,{reliable:true});
+    c.on("open",()=>c.send({t:"hello",name:myName,cid:CID}));
+    c.on("data",m=>onHostMsg(ch,m));
+    c.on("close",()=>onChClose(ch));
+  });
+  p.on("error",e=>{ console.warn("peer", e.type); onFail(); });
+}
+function guestRelay(url){
+  if(typeof mqtt==="undefined") return;
+  const cl=mqtt.connect(url,{connectTimeout:8000, reconnectPeriod:4000, clean:true});
+  const inTopic=topicOf(roomCode)+"/g/"+CID, outTopic=topicOf(roomCode)+"/h";
+  const ch={kind:"relay", lastPong:Date.now(), closed:false,
+    send:m=>{ if(cl.connected) cl.publish(outTopic, JSON.stringify(Object.assign({gid:CID},m)), {qos:1}); },
+    close:()=>{ ch.closed=true; clearInterval(ch.iv); try{ cl.end(true); }catch(e){} }};
+  chans.push(ch);
+  cl.on("error",e=>console.warn("mqtt", url, e && e.message));
+  cl.on("connect",()=>cl.subscribe(inTopic,{qos:1},()=>ch.send({t:"hello",name:myName,cid:CID})));
+  cl.on("message",(t,buf)=>{ const m=decode(buf); if(m) onHostMsg(ch,m); });
+  ch.iv=setInterval(()=>{
+    if(ch.closed) return;
+    if(!activeCh){ ch.send({t:"hello",name:myName,cid:CID}); return; }
+    if(ch!==activeCh) return;
+    ch.send({t:"ping"});
+    if(Date.now()-ch.lastPong>20000) onChClose(ch);
+  },4000);
+}
+function onHostMsg(ch,m){
+  if(ch.closed) return;
+  if(m.t==="pong"){ ch.lastPong=Date.now(); return; }
+  if(activeCh && ch!==activeCh){ activeCh.send({t:"hello",name:myName,cid:CID}); return; }
+  if(m.t==="state"){
+    if(!activeCh){
+      activeCh=ch; ch.lastPong=Date.now();
+      guestTimers.forEach(clearTimeout); guestTimers=[];
+      chans.filter(x=>x!==ch).forEach(x=>x.close()); chans=[ch];
+      $("netMode").textContent = ch.kind==="p2p" ? "· trực tiếp" : "· qua máy chủ";
+    }
+    if($("game").classList.contains("hidden")) startGameUI();
+    closeOverlay("dc"); onView(m.view);
+  }
+  else if(m.t==="err") toast(m.msg);
+  else if(m.t==="full"){ stopGuest(); lobbyMsg("Phòng đã đủ 2 người."); lockLobby(false); }
+}
+function onChClose(ch){ if(ch===activeCh && view){ stopGuest(); showDisconnected(); } }
+function showDisconnected(failed){
+  openOverlay(`<h2>😿 Mất kết nối</h2><p class="tag">${failed?"Vẫn chưa liên lạc được với chủ phòng. Chủ phòng còn mở tab game không?":"Không liên lạc được với chủ phòng."}</p>
     <div class="row"><button class="btn mint" id="rejoinBtn">Kết nối lại</button></div>`, "dc");
-  $("rejoinBtn").onclick=()=>{ $("rejoinBtn").disabled=true; $("rejoinBtn").textContent="Đang thử…"; connectToHost(); };
+  $("rejoinBtn").onclick=()=>{ $("rejoinBtn").disabled=true; $("rejoinBtn").textContent="Đang thử…"; startGuestConnect(); };
 }
 function sendAction(a){
   if(isHost){ const err=applyAction(state,0,a); if(err) toast(err); broadcast(); }
-  else if(conn && conn.open) conn.send({t:"act",a});
+  else if(activeCh) activeCh.send({t:"act",a});
   else toast("Chưa kết nối với chủ phòng.");
 }
 

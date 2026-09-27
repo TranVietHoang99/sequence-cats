@@ -16,5 +16,6 @@ Game **Sequence** chủ đề mèo, chơi online 1 đấu 1 ngay trên trình du
 - Bài chết (cả 2 ô đã có chip): đổi lấy lá mới, 1 lần mỗi lượt.
 
 ## Kỹ thuật
-Một file `index.html` duy nhất. Kết nối P2P bằng [PeerJS](https://peerjs.com/) (WebRTC). Một số mạng
-(4G, mạng công ty có NAT chặt) có thể không kết nối được do không có TURN server; khi đó thử đổi mạng khác (Wi-Fi).
+Một file `index.html` duy nhất. Game thử kết nối trực tiếp giữa hai máy bằng [PeerJS](https://peerjs.com/) (WebRTC).
+Nếu mạng chặn kết nối trực tiếp (4G, mạng công ty…), sau khoảng 6 giây game tự chuyển sang đường dự phòng
+đi qua máy chủ MQTT công cộng (EMQX, HiveMQ). Bên cạnh mã phòng có ghi đang dùng đường nào: "trực tiếp" hoặc "qua máy chủ".
