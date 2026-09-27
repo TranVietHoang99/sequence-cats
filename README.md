@@ -13,6 +13,7 @@ Game **Sequence** chủ đề mèo, chơi online 1 đấu 1 ngay trên trình du
 - Có **2 sequence** là thắng. Hai sequence được dùng chung tối đa 1 ô.
 - **Mèo Joker** (lá đặc biệt, mèo mở 2 mắt): đặt vào ô trống bất kỳ.
 - **Mèo nháy mắt** (lá đặc biệt): gỡ 1 dấu chân của đối thủ (trừ dấu đã nằm trong sequence).
+- Mỗi lượt 15 giây, hết giờ game tự đánh ngẫu nhiên 1 lá hợp lệ.
 - Bài chết (cả 2 ô đã có chip): đổi lấy lá mới, 1 lần mỗi lượt.
 
 ## Kỹ thuật

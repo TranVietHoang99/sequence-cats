@@ -87,6 +87,12 @@ header .sp{flex:1}
 }
 .status.my{border-color:var(--pink);background:#fff3f8}
 .status .dot{width:12px;height:12px;border-radius:50%;flex:none}
+.status{position:relative;overflow:hidden}
+.status .stxt{flex:1}
+.timer{flex:none;font-weight:800;background:#fff;border:2px solid #f0dce6;border-radius:999px;padding:1px 10px;font-variant-numeric:tabular-nums}
+.timer.low{color:#fff;background:var(--red);border-color:var(--red);animation:tick 1s ease-in-out infinite}
+@keyframes tick{50%{transform:scale(1.08)}}
+.tbar{position:absolute;left:0;bottom:0;height:4px;width:100%;opacity:.8;transition:width .2s linear}
 
 .board-wrap{background:#ffe6f0;padding:8px;border-radius:20px;box-shadow:0 10px 30px rgba(223,126,163,.18)}
 .board{display:grid;grid-template-columns:repeat(10,1fr);gap:4px;max-width:min(720px, calc((100vh - 300px) / 1.12));min-width:min(100%, 330px);margin:0 auto}
@@ -234,7 +240,7 @@ details ul{padding-left:18px;margin:6px 0 0;font-size:.9rem}
     <input id="codeInput" maxlength="5" placeholder="ABCDE" autocomplete="off">
     <div class="row"><button class="btn mint" id="joinBtn">Vào phòng</button></div>
     <div class="msg" id="lobbyMsg"></div>
-    <div style="margin-top:10px;font-size:.8rem;color:var(--muted)">Phiên bản 1.4 · có kết nối dự phòng</div>
+    <div style="margin-top:10px;font-size:.8rem;color:var(--muted)">Phiên bản 1.5 · đồng hồ 15 giây</div>
   </div>
 
   <div class="lobby-card waiting hidden" id="lobbyWait">
@@ -254,7 +260,7 @@ details ul{padding-left:18px;margin:6px 0 0;font-size:.9rem}
 <section id="game" class="hidden">
   <header>
     <div class="title"><svg style="color:#ffd7a8"><use href="#cat"/></svg>Sequence Mèo</div>
-    <div class="room">Phòng <b id="roomCode"></b> <span id="netMode"></span></div><div class="room" style="font-size:.8rem">v1.4</div>
+    <div class="room">Phòng <b id="roomCode"></b> <span id="netMode"></span></div><div class="room" style="font-size:.8rem">v1.5.1</div>
     <div class="sp"></div>
     <button class="btn ghost" id="copyBtn2">📋 Link</button>
     <button class="btn ghost" id="muteBtn">🔊 Meo</button>
@@ -290,6 +296,7 @@ details ul{padding-left:18px;margin:6px 0 0;font-size:.9rem}
             <li>Hai sequence được dùng chung tối đa 1 ô. Có 2 sequence là thắng.</li>
             <li><b>Mèo Joker (2 mắt mở)</b>: đặt vào bất kỳ ô trống nào.</li>
             <li><b>Mèo nháy mắt</b>: gỡ 1 dấu chân của đối thủ (trừ dấu đã nằm trong sequence).</li>
+            <li>Mỗi lượt có <b>15 giây</b>. Hết giờ, game tự đánh ngẫu nhiên 1 lá hợp lệ cho bạn.</li>
             <li>Bài chết: cả 2 ô của lá đó đã có chip → được đổi lấy lá mới (1 lần/lượt), rồi đánh tiếp.</li>
           </ul>
         </details>
@@ -318,7 +325,7 @@ QC 9S 9C 8H 9H TH QH QD 5H 3D
 KC 8S TC QC KC AC AD KD 4H 4D
 AC 7S 6S 5S 4S 3S 2S 2H 3H 5D
 XX AD KD QD TD 9D 8D 7D 6D XX`.split(/\s+/);
-const HAND_SIZE = 3, SEQ_TO_WIN = 2;
+const HAND_SIZE = 3, SEQ_TO_WIN = 2, TURN_MS = 15000;
 const CAT_COLORS = {S:"#c9c6d9",H:"#ffc6d9",D:"#ffd7a8",C:"#8a8599"};
 const TEAM_NAME = ["Hồng","Mint"];
 
@@ -343,7 +350,7 @@ function newGame(names, starter){
   const st = {
     board: LAYOUT.slice(), chips: Array(100).fill(null), locked: Array(100).fill(false),
     sequences: [], deck: newDeck(), discard: [], hands: [[],[]], names: names.slice(),
-    turn: starter ?? (Math.random()<.5?0:1), winner: null, moveNo: 0, last: null, deadUsed: false, log: []
+    turn: starter ?? (Math.random()<.5?0:1), winner: null, moveNo: 0, last: null, deadUsed: false, log: [], turnStart: Date.now(), paused: false
   };
   for(let i=0;i<HAND_SIZE;i++) for(const p of [0,1]) st.hands[p].push(st.deck.pop());
   st.log.push(`Ván mới! ${st.names[st.turn]} đi trước.`);
@@ -424,6 +431,7 @@ function applyAction(st, p, a){
   st.moveNo++; st.last={cell:i, team:p, kind};
   st.deadUsed=false;
   if(st.winner===null) st.turn = 1-p;
+  st.turnStart=Date.now();
   if(st.log.length>60) st.log.splice(0, st.log.length-60);
   return null;
 }
@@ -432,8 +440,37 @@ function viewFor(st, p){
     board:st.board, chips:st.chips, locked:st.locked, names:st.names, turn:st.turn, winner:st.winner,
     moveNo:st.moveNo, last:st.last, deadUsed:st.deadUsed, log:st.log,
     hand:st.hands[p], oppCount:st.hands[1-p].length, deckCount:st.deck.length,
-    seqs:[seqCount(st,0), seqCount(st,1)], me:p
+    seqs:[seqCount(st,0), seqCount(st,1)], me:p,
+    timeLeft: st.paused ? TURN_MS : Math.max(0, TURN_MS-(Date.now()-st.turnStart)), paused: st.paused
   };
+}
+/* Hết giờ: đánh 1 nước hợp lệ ngẫu nhiên (chọn ngẫu nhiên lá bài, rồi ngẫu nhiên ô) */
+function legalCells(st, p, card){
+  const out=[];
+  for(let i=0;i<100;i++){
+    if(st.board[i]==="XX") continue;
+    if(isOneEyed(card)){ if(st.chips[i]===1-p && !st.locked[i]) out.push(i); }
+    else if(st.chips[i]===null && (isTwoEyed(card) || st.board[i]===card)) out.push(i);
+  }
+  return out;
+}
+const pick = a => a[Math.floor(Math.random()*a.length)];
+function autoPlay(st, p){
+  const who=st.names[p];
+  const options = () => st.hands[p].map(c=>({c, cells:legalCells(st,p,c)})).filter(o=>o.cells.length);
+  let opts=options();
+  if(!opts.length && !st.deadUsed){
+    const dead=st.hands[p].find(c=>isDead(st,c));
+    if(dead){ applyAction(st,p,{type:"dead",card:dead}); opts=options(); }
+  }
+  st.log.push(`⏰ ${who} hết giờ — tự đánh ngẫu nhiên.`);
+  if(!opts.length){
+    st.log.push(`${who} không có nước đi, mất lượt.`);
+    st.turn=1-p; st.turnStart=Date.now(); st.deadUsed=false; st.moveNo++; st.last=null;
+    return;
+  }
+  const o=pick(opts);
+  applyAction(st,p,{type:"play", card:o.c, cell:pick(o.cells)});
 }
 
 /* ================= Sound ================= */
@@ -539,8 +576,11 @@ function createRoom(){
   }
 }
 function onGuestConn(c){
+  c.last=Date.now();
   c.on("data", m=>{
     if(!m||typeof m!=="object") return;
+    c.last=Date.now();
+    if(m.t==="ping"){ c.send({t:"pong"}); return; }
     if(m.t==="hello"){
       if(guestConn && guestConn!==c && guestConn.open && guestCid!==m.cid){ c.send({t:"full"}); setTimeout(()=>c.close(),300); return; }
       if(guestConn && guestConn!==c){ const old=guestConn; guestConn=c; old.close(); }
@@ -556,6 +596,14 @@ function onGuestConn(c){
   });
   c.on("close",()=>{ if(c===guestConn){ guestConn=null; if(state){ state.log.push(`${guestName} mất kết nối…`); broadcast(); } } });
 }
+setInterval(()=>{
+  if(!isHost || !state || state.winner!==null) return;
+  if(guestConn && guestConn.open && Date.now()-(guestConn.last||0)>12000) guestConn.close();
+  const online = !!(guestConn && guestConn.open);
+  if(!online){ if(!state.paused){ state.paused=true; broadcast(); } state.turnStart=Date.now(); return; }
+  if(state.paused){ state.paused=false; state.turnStart=Date.now(); broadcast(); return; }
+  if(Date.now()-state.turnStart>=TURN_MS){ autoPlay(state,state.turn); broadcast(); }
+},250);
 function broadcast(){
   onView(viewFor(state,0));
   if(guestConn && guestConn.open) guestConn.send({t:"state", view:viewFor(state,1), room:roomCode});
@@ -596,7 +644,13 @@ function startGuestConnect(){
 function guestP2P(onFail){
   const p=new Peer();
   let c=null;
-  const ch={kind:"p2p", send:m=>{ if(c&&c.open) c.send(m); }, close:()=>{ try{ p.destroy(); }catch(e){} }};
+  const ch={kind:"p2p", lastPong:Date.now(), send:m=>{ if(c&&c.open) c.send(m); },
+    close:()=>{ ch.closed=true; clearInterval(ch.iv); try{ p.destroy(); }catch(e){} }};
+  ch.iv=setInterval(()=>{
+    if(ch.closed || ch!==activeCh) return;
+    ch.send({t:"ping"});
+    if(Date.now()-ch.lastPong>15000) onChClose(ch);
+  },4000);
   chans.push(ch);
   p.on("open",()=>{
     c=p.connect(PREFIX+roomCode,{reliable:true});
@@ -670,6 +724,7 @@ function onView(v){
   if(moved && v.last) meow(v.last.kind);
   if(!view || v.moveNo!==prevMove || v.hand.join()!==view.hand.join()) selected=null;
   prevMove=v.moveNo; view=v;
+  deadline = performance.now() + (v.timeLeft ?? TURN_MS);
   render(moved);
   if(v.winner!==null) showWinner(); else closeOverlay("win");
 }
@@ -689,7 +744,9 @@ function render(animate){
     else if(isOneEyed(selCard)) txt="Mèo nháy mắt: bấm vào dấu chân đối thủ để gỡ";
     else txt=`Đặt ${cardLabel(selCard)} vào 1 trong 2 ô trên bàn`;
   } else txt=`Đang chờ ${v.names[v.turn]}…`;
-  st.innerHTML=`<span class="dot" style="background:var(--${v.turn===0?"pink":"mint"})"></span>${txt}`;
+  st.innerHTML=`<span class="dot" style="background:var(--${v.turn===0?"pink":"mint"})"></span><span class="stxt">${txt}</span>
+    <span class="timer${v.winner!==null?" hidden":""}" id="timer"></span><span class="tbar" id="tbar" style="background:var(--${v.turn===0?"pink-d":"mint-d"})"></span>`;
+  tickTimer();
 
   // board
   let h="";
@@ -745,6 +802,18 @@ function render(animate){
   $("deckCount").textContent=v.deckCount;
   $("log").innerHTML = v.log.slice().reverse().map(l=>`<li>${esc(l)}</li>`).join("");
 }
+let deadline=0;
+function tickTimer(){
+  const t=$("timer"), bar=$("tbar"); if(!t||!view) return;
+  if(view.winner!==null){ bar.style.width="0"; return; }
+  if(view.paused){ t.textContent="⏸"; t.classList.remove("low"); bar.style.width="100%"; return; }
+  const left=Math.max(0, deadline-performance.now());
+  const sec=Math.ceil(left/1000);
+  t.textContent="⏰ "+sec+"s";
+  t.classList.toggle("low", sec<=5);
+  bar.style.width=(left/TURN_MS*100)+"%";
+}
+setInterval(tickTimer, 200);
 function isDeadView(c){ return c[0]!=="J" && view.board.every((b,i)=>b!==c || view.chips[i]!==null); }
 function esc(s){ return String(s).replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch])); }
 
