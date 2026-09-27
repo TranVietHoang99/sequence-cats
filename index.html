@@ -106,7 +106,9 @@ header .sp{flex:1}
 .cell .chip.new{animation:plop .35s ease-out}
 @keyframes plop{0%{transform:scale(1.5);opacity:0}70%{transform:scale(.92);opacity:1}100%{transform:scale(1)}}
 .cell.last{box-shadow:0 0 0 3px var(--gold)}
-.cell.target{border-color:var(--lav-d);background:#f7f2ff}
+.cell.target{border-color:var(--lav-d);background:#f3ecff;box-shadow:0 0 0 2px var(--lav),0 0 14px 3px rgba(155,127,220,.65);z-index:1;animation:glow 1.1s ease-in-out infinite alternate}
+.cell.target:after{content:"";position:absolute;inset:0;background:rgba(201,182,242,.35);border-radius:inherit;pointer-events:none}
+@keyframes glow{from{box-shadow:0 0 0 2px var(--lav),0 0 6px 1px rgba(155,127,220,.45)}to{box-shadow:0 0 0 3px var(--lav-d),0 0 18px 5px rgba(155,127,220,.75)}}
 
 .chip .bg{stroke-width:5}
 .chip.t0 .bg{fill:var(--pink);stroke:var(--pink-d)}
@@ -122,32 +124,25 @@ header .sp{flex:1}
 .hand-head .sp{flex:1}
 .hand{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;padding-top:8px}
 .card{
-  position:relative;width:70px;height:98px;border-radius:12px;background:#fffdfa;border:2px solid #efd9e3;
+  position:relative;width:84px;height:118px;border-radius:12px;background:#fffdfa;border:2px solid #efd9e3;
   box-shadow:0 3px 0 #ecd3de;padding:0;transition:transform .12s, box-shadow .12s;color:var(--black);
 }
 .card.red{color:var(--red)}
 .card:hover{transform:translateY(-3px)}
 .card.sel{transform:translateY(-10px);border-color:var(--pink-d);box-shadow:0 8px 16px rgba(223,126,163,.35)}
-.card .c-rk{position:absolute;top:3px;left:7px;font-weight:800;font-size:1.25rem;line-height:1}
-.card .c-st{position:absolute;top:22px;left:8px;font-size:1rem;line-height:1}
-.card .c-big{position:absolute;right:6px;bottom:4px;font-size:2.1rem;line-height:1}
-.card .c-cat{position:absolute;right:5px;top:5px;width:26px;height:26px}
+.card .c-rk{position:absolute;top:4px;left:8px;font-weight:800;font-size:1.45rem;line-height:1}
+.card .c-st{position:absolute;top:27px;left:9px;font-size:1.15rem;line-height:1}
+.card .c-big{position:absolute;right:8px;bottom:6px;font-size:2.6rem;line-height:1}
+.card .c-cat{position:absolute;right:6px;top:6px;width:30px;height:30px}
 .card.jack{background:linear-gradient(180deg,#f7f1ff,#fff)}
-.card.jack .c-face{position:absolute;left:50%;top:48%;transform:translate(-50%,-50%);width:48px;height:48px}
-.card.jack .c-lbl{position:absolute;bottom:4px;left:0;right:0;font-size:.72rem;font-weight:800;color:var(--lav-d)}
+.card.jack .c-face{position:absolute;left:50%;top:44%;transform:translate(-50%,-50%);width:78%;height:auto;aspect-ratio:1}
+.card.jack .c-lbl{position:absolute;bottom:6px;left:0;right:0;font-size:.8rem;font-weight:800;color:var(--lav-d);line-height:1.1}
 .card.dead:after{
   content:"Bài chết";position:absolute;inset:auto 4px 30px;background:#fff;border-radius:6px;
   font-size:.7rem;font-weight:800;color:var(--muted);border:1px solid #eee;
 }
 @media (max-width:520px){
-  .card{width:calc((100vw - 90px)/7);height:calc((100vw - 90px)/7*1.42);min-width:40px;border-radius:9px}
-  .card .c-rk{font-size:1rem;left:4px}
-  .card .c-st{top:18px;left:5px;font-size:.8rem}
-  .card .c-big{font-size:1.3rem;right:3px}
-  .card .c-cat{display:none}
-  .card.jack .c-face{width:32px;height:32px}
-  .card.jack .c-lbl{font-size:.55rem}
-  .hand{gap:5px}
+  .hand{gap:10px}
   .board{gap:2px}.board-wrap{padding:5px;border-radius:14px}
   .cell{border-width:1px;border-radius:5px}
   .cell .mini{display:none}
@@ -287,11 +282,11 @@ details ul{padding-left:18px;margin:6px 0 0;font-size:.9rem}
         <details>
           <summary>Luật chơi</summary>
           <ul>
-            <li>Chọn 1 lá bài trên tay, rồi bấm vào 1 trong 2 ô có lá đó trên bàn để đặt dấu chân.</li>
+            <li>Mỗi người cầm 3 lá. Chọn 1 lá trên tay → các ô đặt được sẽ sáng lên → bấm vào ô để đặt dấu chân.</li>
             <li>Tạo hàng 5 dấu chân liên tiếp (ngang, dọc, chéo) = 1 sequence. 4 ô bát cá ở góc tính cho cả hai bên.</li>
             <li>Hai sequence được dùng chung tối đa 1 ô. Có 2 sequence là thắng.</li>
-            <li><b>J♦ J♣ (mèo 2 mắt)</b>: đặt vào bất kỳ ô trống nào.</li>
-            <li><b>J♠ J♥ (mèo nháy mắt)</b>: gỡ 1 dấu chân của đối thủ (trừ dấu đã nằm trong sequence).</li>
+            <li><b>Mèo Joker (2 mắt mở)</b>: đặt vào bất kỳ ô trống nào.</li>
+            <li><b>Mèo nháy mắt</b>: gỡ 1 dấu chân của đối thủ (trừ dấu đã nằm trong sequence).</li>
             <li>Bài chết: cả 2 ô của lá đó đã có chip → được đổi lấy lá mới (1 lần/lượt), rồi đánh tiếp.</li>
           </ul>
         </details>
@@ -320,13 +315,13 @@ QC 9S 9C 8H 9H TH QH QD 5H 3D
 KC 8S TC QC KC AC AD KD 4H 4D
 AC 7S 6S 5S 4S 3S 2S 2H 3H 5D
 XX AD KD QD TD 9D 8D 7D 6D XX`.split(/\s+/);
-const HAND_SIZE = 7, SEQ_TO_WIN = 2;
+const HAND_SIZE = 3, SEQ_TO_WIN = 2;
 const CAT_COLORS = {S:"#c9c6d9",H:"#ffc6d9",D:"#ffd7a8",C:"#8a8599"};
 const TEAM_NAME = ["Hồng","Mint"];
 
 const isOneEyed = c => c[0]==="J" && (c[1]==="S"||c[1]==="H");
 const isTwoEyed = c => c[0]==="J" && (c[1]==="D"||c[1]==="C");
-const cardLabel = c => RTXT(c[0]) + SUIT[c[1]];
+const cardLabel = c => c[0]==="J" ? (isOneEyed(c) ? "Mèo nháy mắt" : "Mèo Joker") : RTXT(c[0]) + SUIT[c[1]];
 
 /* ================= Game logic (host-authoritative) ================= */
 function shuffle(a){
@@ -614,6 +609,8 @@ function render(animate){
     let target=false;
     if(selCard && myTurn){
       if(isOneEyed(selCard)) target = chip===1-me && !v.locked[i];
+      else if(isTwoEyed(selCard)) target = chip===null;
+      else target = chip===null && c===selCard;
     }
     h+=`<div class="cell ${RED(c[1])?"red":"black"}${last?" last":""}${target?" target":""}" data-i="${i}">
       <span class="rk">${RTXT(c[0])}</span><span class="st">${SUIT[c[1]]}</span>
@@ -629,7 +626,6 @@ function render(animate){
     if(c[0]==="J"){
       const one=isOneEyed(c);
       return `<button class="card jack ${red?"red":""}${sel}" data-h="${i}" title="${one?"Gỡ 1 dấu chân đối thủ":"Đặt vào ô trống bất kỳ"}">
-        <span class="c-rk">J</span><span class="c-st">${SUIT[c[1]]}</span>
         <svg class="c-face" style="color:${one?"#d9ccf5":"#ffd7a8"}"><use href="#${one?"catwink":"cat"}"/></svg>
         <span class="c-lbl">${one?"GỠ CHIP":"JOKER"}</span></button>`;
     }

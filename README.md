@@ -8,11 +8,11 @@ Game **Sequence** chủ đề mèo, chơi online 1 đấu 1 ngay trên trình du
 3. Người tạo phòng (chủ phòng) phải **giữ tab mở** suốt ván, vì máy chủ phòng giữ trạng thái ván chơi.
 
 ## Luật
-- Chọn 1 lá bài trên tay, bấm vào 1 trong 2 ô có lá đó để đặt dấu chân 🐾.
+- Mỗi người cầm 3 lá. Chọn 1 lá trên tay, các ô đặt được sẽ sáng lên, bấm vào ô để đặt dấu chân 🐾.
 - 5 dấu chân liên tiếp (ngang/dọc/chéo) = 1 sequence. 4 ô bát cá ở góc tính cho cả hai bên.
 - Có **2 sequence** là thắng. Hai sequence được dùng chung tối đa 1 ô.
-- **J♦ J♣** (mèo 2 mắt): đặt vào ô trống bất kỳ.
-- **J♠ J♥** (mèo nháy mắt): gỡ 1 dấu chân của đối thủ (trừ dấu đã nằm trong sequence).
+- **Mèo Joker** (lá đặc biệt, mèo mở 2 mắt): đặt vào ô trống bất kỳ.
+- **Mèo nháy mắt** (lá đặc biệt): gỡ 1 dấu chân của đối thủ (trừ dấu đã nằm trong sequence).
 - Bài chết (cả 2 ô đã có chip): đổi lấy lá mới, 1 lần mỗi lượt.
 
 ## Kỹ thuật
