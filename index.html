@@ -240,7 +240,7 @@ details ul{padding-left:18px;margin:6px 0 0;font-size:.9rem}
     <input id="codeInput" maxlength="5" placeholder="ABCDE" autocomplete="off">
     <div class="row"><button class="btn mint" id="joinBtn">Vào phòng</button></div>
     <div class="msg" id="lobbyMsg"></div>
-    <div style="margin-top:10px;font-size:.8rem;color:var(--muted)">Phiên bản 1.5 · đồng hồ 15 giây</div>
+    <div style="margin-top:10px;font-size:.8rem;color:var(--muted)">Phiên bản 1.6 · đồng hồ 20 giây</div>
   </div>
 
   <div class="lobby-card waiting hidden" id="lobbyWait">
@@ -260,7 +260,7 @@ details ul{padding-left:18px;margin:6px 0 0;font-size:.9rem}
 <section id="game" class="hidden">
   <header>
     <div class="title"><svg style="color:#ffd7a8"><use href="#cat"/></svg>Sequence Mèo</div>
-    <div class="room">Phòng <b id="roomCode"></b> <span id="netMode"></span></div><div class="room" style="font-size:.8rem">v1.5.1</div>
+    <div class="room">Phòng <b id="roomCode"></b> <span id="netMode"></span></div><div class="room" style="font-size:.8rem">v1.6</div>
     <div class="sp"></div>
     <button class="btn ghost" id="copyBtn2">📋 Link</button>
     <button class="btn ghost" id="muteBtn">🔊 Meo</button>
@@ -296,7 +296,7 @@ details ul{padding-left:18px;margin:6px 0 0;font-size:.9rem}
             <li>Hai sequence được dùng chung tối đa 1 ô. Có 2 sequence là thắng.</li>
             <li><b>Mèo Joker (2 mắt mở)</b>: đặt vào bất kỳ ô trống nào.</li>
             <li><b>Mèo nháy mắt</b>: gỡ 1 dấu chân của đối thủ (trừ dấu đã nằm trong sequence).</li>
-            <li>Mỗi lượt có <b>15 giây</b>. Hết giờ, game tự đánh ngẫu nhiên 1 lá hợp lệ cho bạn.</li>
+            <li>Mỗi lượt có <b>20 giây</b>. Hết giờ, game tự đánh ngẫu nhiên 1 lá hợp lệ cho bạn.</li>
             <li>Bài chết: cả 2 ô của lá đó đã có chip → được đổi lấy lá mới (1 lần/lượt), rồi đánh tiếp.</li>
           </ul>
         </details>
@@ -325,7 +325,7 @@ QC 9S 9C 8H 9H TH QH QD 5H 3D
 KC 8S TC QC KC AC AD KD 4H 4D
 AC 7S 6S 5S 4S 3S 2S 2H 3H 5D
 XX AD KD QD TD 9D 8D 7D 6D XX`.split(/\s+/);
-const HAND_SIZE = 3, SEQ_TO_WIN = 2, TURN_MS = 15000;
+const HAND_SIZE = 3, SEQ_TO_WIN = 2, TURN_MS = 20000;
 const CAT_COLORS = {S:"#c9c6d9",H:"#ffc6d9",D:"#ffd7a8",C:"#8a8599"};
 const TEAM_NAME = ["Hồng","Mint"];
 
