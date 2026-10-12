@@ -36,6 +36,7 @@ svg.sprite{position:absolute;width:0;height:0}
   width:100%;max-width:420px;background:var(--panel);border-radius:28px;padding:28px 24px;
   box-shadow:0 12px 40px rgba(223,126,163,.18);text-align:center;border:3px solid #ffe0ec;
 }
+#lobbyWait{max-width:560px}
 .logo{width:110px;height:110px;margin:0 auto -6px;display:block}
 h1{margin:0;font-size:2.3rem;line-height:1.1;letter-spacing:.5px}
 h1 .a{color:var(--pink-d)} h1 .b{color:var(--mint-d)}
@@ -56,6 +57,8 @@ input:focus{border-color:var(--pink)}
 .btn.mint{background:var(--mint-d);box-shadow:0 4px 0 #3a9a79}
 .btn.lav{background:var(--lav-d);box-shadow:0 4px 0 #7c62bf}
 .btn.ghost{background:#fff;color:var(--ink);border:2px solid #f0dce6;box-shadow:none;padding:7px 12px;font-size:.95rem}
+.btn.glow{background:var(--lav-d);color:#fff;border-color:var(--lav-d);animation:glowbtn 1.2s ease-in-out infinite alternate}
+@keyframes glowbtn{to{box-shadow:0 0 14px 3px rgba(155,127,220,.6)}}
 .btn:disabled{opacity:.5;cursor:default}
 .row{display:flex;gap:10px;margin-top:14px}
 .row>*{flex:1}
@@ -70,6 +73,23 @@ input:focus{border-color:var(--pink)}
 .dots:after{content:"";animation:dots 1.4s steps(4) infinite}
 @keyframes dots{0%{content:""}25%{content:"."}50%{content:".."}75%{content:"..."}}
 
+/* ---------- Settings ---------- */
+.setup{text-align:left;margin-top:14px;border-top:2px dashed #f6e3ec;padding-top:6px}
+.setup h4{margin:12px 0 6px;font-size:.95rem;display:flex;align-items:center;gap:8px}
+.maps{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:8px}
+.mapbtn{display:block;min-width:0;overflow:hidden;background:#fff;border:2px solid #f0dce6;border-radius:12px;padding:6px 6px 4px;font-weight:800;font-size:.8rem;color:var(--ink);line-height:1.15}
+.mapbtn.on{border-color:var(--pink-d);background:#fff3f8;box-shadow:0 3px 0 var(--pink)}
+.mini-map{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:1px;margin-bottom:4px;width:100%}
+.mini-map i{display:block;width:100%;aspect-ratio:1;border-radius:2px;background:#f6ecf1}
+.mini-map i.m-XX{background:#a8d8f0} .mini-map i.m-rock{background:#8f879c} .mini-map i.m-water{background:#7cc4ee}
+.mini-map i.m-catnip{background:#8fd17a} .mini-map i.m-box{background:#e0b06d} .mini-map i.m-yarn{background:#f39cc8}
+.mini-map i.m-rand{background:var(--lav)}
+.mapdesc{font-size:.85rem;color:var(--muted);margin-top:6px}
+.seg{display:flex;gap:6px;flex-wrap:wrap}
+.pill{border:2px solid #f0dce6;background:#fff;border-radius:999px;padding:3px 12px;font-weight:800;font-size:.85rem;color:var(--ink)}
+.pill.on{background:var(--pink-d);border-color:var(--pink-d);color:#fff}
+.pill.sm{font-size:.75rem;padding:1px 10px}
+
 /* ---------- Game ---------- */
 #game{max-width:1180px;margin:0 auto;padding:10px 16px 20px}
 header{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}
@@ -78,16 +98,15 @@ header .title svg{width:34px;height:34px}
 header .room{font-weight:700;color:var(--muted);font-size:.95rem}
 header .room b{color:var(--ink);letter-spacing:2px}
 header .sp{flex:1}
-.layout{display:grid;grid-template-columns:minmax(0,1fr) 290px;gap:16px;align-items:start}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:16px;align-items:start}
 @media (max-width:900px){.layout{grid-template-columns:minmax(0,1fr)}}
 
 .status{
   background:var(--panel);border-radius:var(--radius);padding:9px 14px;margin-bottom:10px;font-weight:700;
-  border:2px solid #f6e3ec;display:flex;align-items:center;gap:8px;min-height:46px;
+  border:2px solid #f6e3ec;display:flex;align-items:center;gap:8px;min-height:46px;position:relative;overflow:hidden;
 }
 .status.my{border-color:var(--pink);background:#fff3f8}
 .status .dot{width:12px;height:12px;border-radius:50%;flex:none}
-.status{position:relative;overflow:hidden}
 .status .stxt{flex:1}
 .timer{flex:none;font-weight:800;background:#fff;border:2px solid #f0dce6;border-radius:999px;padding:1px 10px;font-variant-numeric:tabular-nums}
 .timer.low{color:#fff;background:var(--red);border-color:var(--red);animation:tick 1s ease-in-out infinite}
@@ -108,13 +127,31 @@ header .sp{flex:1}
 .cell .st{font-size:clamp(12px,44cqw,30px);line-height:1;margin-top:18%}
 .cell .mini{position:absolute;top:3px;right:3px;width:34%;height:34%;opacity:.55}
 .cell.corner{background:#eaf8ff;border-color:#cbe7f5;cursor:default}
-.cell.corner svg{width:88%;height:88%}
-.cell .chip{position:absolute;inset:6%;width:88%;height:88%;animation:none}
+.cell .terr{position:absolute;inset:6%;width:88%;height:88%}
+.cell.t-water{background:linear-gradient(180deg,#eaf7ff 0,#cbe9fb 100%);border-color:#a9d6f2}
+.cell.t-water:before{content:"";position:absolute;left:-10%;right:-10%;bottom:8%;height:22%;
+  background:radial-gradient(circle at 12px -4px,transparent 9px,#9fd3f3 10px,transparent 11px) 0 0/22px 100% repeat-x;opacity:.8}
+.cell.t-catnip{background:linear-gradient(180deg,#f2fbec,#d9f1cb);border-color:#b5dea0}
+.cell.t-yarn{background:linear-gradient(180deg,#fff6fb,#ffe0f0);border-color:#f5c3e0}
+.cell.t-rock{background:#efebf3;border-color:#d4cedc;cursor:not-allowed}
+.cell.t-rock .rk,.cell.t-rock .st,.cell.t-rock .mini{opacity:.22}
+.cell.t-box{background:#fbf1e3;border-color:#ecd2ae;cursor:default}
+.cell .badge{position:absolute;left:2px;bottom:1px;font-size:clamp(8px,26cqw,16px);line-height:1;z-index:1}
+.cell .shield{position:absolute;right:0;bottom:0;font-size:clamp(8px,30cqw,17px);line-height:1;z-index:3;filter:drop-shadow(0 1px 0 #fff)}
+.cell .sleepcat{position:absolute;inset:8%;width:84%;height:84%;color:#ffd1e0;z-index:2;animation:breathe 2.4s ease-in-out infinite}
+@keyframes breathe{50%{transform:scale(1.05)}}
+.cell .zz{position:absolute;top:0;right:3px;font-weight:800;color:var(--lav-d);font-size:clamp(8px,26cqw,15px);z-index:3}
+.cell .claim{position:absolute;inset:0;border-radius:6px;border:3px solid;z-index:2}
+.cell .claim.t0{border-color:var(--pink-d);background:rgba(247,168,196,.3)}
+.cell .claim.t1{border-color:var(--mint-d);background:rgba(143,220,194,.3)}
+.cell .claimpaw{position:absolute;right:3px;top:3px;width:36%;height:36%;z-index:3}
+.cell .chip{position:absolute;inset:6%;width:88%;height:88%;z-index:2}
 .cell .chip.new{animation:plop .35s ease-out}
 @keyframes plop{0%{transform:scale(1.5);opacity:0}70%{transform:scale(.92);opacity:1}100%{transform:scale(1)}}
 .cell.last{box-shadow:0 0 0 3px var(--gold)}
 .cell.target{border-color:var(--lav-d);background:#f3ecff;box-shadow:0 0 0 2px var(--lav),0 0 14px 3px rgba(155,127,220,.65);z-index:1;animation:glow 1.1s ease-in-out infinite alternate}
-.cell.target:after{content:"";position:absolute;inset:0;background:rgba(201,182,242,.35);border-radius:inherit;pointer-events:none}
+.cell.target:after{content:"";position:absolute;inset:0;background:rgba(201,182,242,.35);border-radius:inherit;pointer-events:none;z-index:4}
+.cell.picked{box-shadow:0 0 0 3px var(--gold),0 0 14px 4px rgba(255,200,90,.85);z-index:2}
 @keyframes glow{from{box-shadow:0 0 0 2px var(--lav),0 0 6px 1px rgba(155,127,220,.45)}to{box-shadow:0 0 0 3px var(--lav-d),0 0 18px 5px rgba(155,127,220,.75)}}
 
 .chip .bg{stroke-width:5}
@@ -127,12 +164,12 @@ header .sp{flex:1}
 
 /* ---------- Hand ---------- */
 .hand-wrap{margin-top:14px;background:var(--panel);border-radius:20px;padding:10px 12px 12px;border:2px solid #f6e3ec}
-.hand-head{display:flex;align-items:center;gap:8px;margin-bottom:6px;font-weight:800}
+.hand-head{display:flex;align-items:center;gap:8px;margin-bottom:6px;font-weight:800;flex-wrap:wrap}
 .hand-head .sp{flex:1}
 .hand{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;padding-top:8px}
 .card{
   position:relative;width:84px;height:118px;border-radius:12px;background:#fffdfa;border:2px solid #efd9e3;
-  box-shadow:0 3px 0 #ecd3de;padding:0;transition:transform .12s, box-shadow .12s;color:var(--black);
+  box-shadow:0 3px 0 #ecd3de;padding:0;transition:transform .12s, box-shadow .12s;color:var(--black);flex:none;
 }
 .card.red{color:var(--red)}
 .card:hover{transform:translateY(-3px)}
@@ -142,14 +179,25 @@ header .sp{flex:1}
 .card .c-big{position:absolute;right:8px;bottom:6px;font-size:2.6rem;line-height:1}
 .card .c-cat{position:absolute;right:6px;top:6px;width:30px;height:30px}
 .card.jack{background:linear-gradient(180deg,#f7f1ff,#fff)}
-.card.jack .c-face{position:absolute;left:50%;top:44%;transform:translate(-50%,-50%);width:78%;height:auto;aspect-ratio:1}
-.card.jack .c-lbl{position:absolute;bottom:6px;left:0;right:0;font-size:.8rem;font-weight:800;color:var(--lav-d);line-height:1.1}
+.card .c-face{position:absolute;left:50%;top:44%;transform:translate(-50%,-50%);width:78%;height:auto;aspect-ratio:1}
+.card .c-lbl{position:absolute;bottom:6px;left:2px;right:2px;font-size:.8rem;font-weight:800;color:var(--lav-d);line-height:1.05}
+.card.skill{background:linear-gradient(180deg,var(--sbg),#fff);border-color:var(--sbd)}
+.card.skill .c-face{top:40%;width:68%}
+.card.skill .c-ico{position:absolute;top:3px;right:4px;font-size:1.25rem;line-height:1}
+.card.skill .c-lbl{color:var(--ink);font-size:.78rem}
+.card.skill .c-lbl small{display:block;font-size:.58rem;color:var(--muted);letter-spacing:1.5px}
 .card.dead:after{
-  content:"Bài chết";position:absolute;inset:auto 4px 30px;background:#fff;border-radius:6px;
+  content:"Bài chết";position:absolute;inset:auto 4px 32px;background:#fff;border-radius:6px;
   font-size:.7rem;font-weight:800;color:var(--muted);border:1px solid #eee;
 }
+.card.small{width:64px;height:90px;cursor:default}
+.card.small:hover{transform:none}
+.card.small .c-rk{font-size:1.1rem;left:6px}.card.small .c-st{top:22px;left:7px;font-size:.9rem}
+.card.small .c-big{font-size:1.9rem}.card.small .c-cat{width:22px;height:22px}
+.card.small .c-lbl{font-size:.62rem}.card.small .c-ico{font-size:1rem}
 @media (max-width:520px){
-  .hand{gap:10px}
+  .hand{gap:8px}
+  .card{width:74px;height:104px}
   .board{gap:2px}.board-wrap{padding:5px;border-radius:14px}
   .cell{border-width:1px;border-radius:5px}
   .cell .mini{display:none}
@@ -169,10 +217,16 @@ header .sp{flex:1}
 .pip{width:14px;height:14px;border-radius:50%;border:2px solid var(--lav-d);background:#fff}
 .pip.on{background:var(--lav)}
 .off{color:var(--red);font-size:.8rem;font-weight:800}
+.info{font-size:.88rem;line-height:1.45}
+.info b{color:var(--ink)}
+.legend{list-style:none;padding:0;margin:6px 0 0;font-size:.85rem}
+.legend li{margin:3px 0}
+.oracle .hand{justify-content:flex-start;padding-top:2px}
 .log{max-height:220px;overflow:auto;font-size:.9rem;margin:0;padding-left:18px}
 .log li{margin:2px 0}
 details summary{cursor:pointer;font-weight:800}
-details ul{padding-left:18px;margin:6px 0 0;font-size:.9rem}
+details ul{padding-left:18px;margin:6px 0 0;font-size:.88rem}
+details .rh{margin:10px 0 0;font-weight:800}
 
 /* ---------- Toast / overlay ---------- */
 #toast{
@@ -181,6 +235,8 @@ details ul{padding-left:18px;margin:6px 0 0;font-size:.9rem}
 }
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 #overlay{position:fixed;inset:0;background:rgba(91,71,96,.35);display:grid;place-items:center;z-index:20;padding:16px}
+#overlay .lobby-card{max-height:92vh;overflow:auto}
+#overlay .lobby-card.wide{max-width:560px}
 #overlay .lobby-card h2{margin:4px 0;font-size:2rem}
 </style>
 </head>
@@ -215,6 +271,15 @@ details ul{padding-left:18px;margin:6px 0 0;font-size:.9rem}
       <circle cx="14.5" cy="20" r="2.3" fill="#5b4760"/><circle cx="15.2" cy="19.3" r=".7" fill="#fff"/>
       <path d="M23 20.5Q25.5 18 28 20.5" fill="none" stroke="#5b4760" stroke-width="1.6" stroke-linecap="round"/>
     </symbol>
+    <symbol id="catsleep" viewBox="0 0 40 40">
+      <use href="#cathead"/>
+      <path d="M11.5 20Q14.5 22.5 17.5 20M22.5 20Q25.5 22.5 28.5 20" fill="none" stroke="#5b4760" stroke-width="1.6" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="catsly" viewBox="0 0 40 40">
+      <use href="#cathead"/>
+      <path d="M11 19.5H18M22 19.5H29" stroke="#5b4760" stroke-width="2.2" stroke-linecap="round"/>
+      <circle cx="16" cy="20.3" r="1.2" fill="#5b4760"/><circle cx="27" cy="20.3" r="1.2" fill="#5b4760"/>
+    </symbol>
     <symbol id="bowl" viewBox="0 0 100 100">
       <path d="M30 44C30 34 44 29 55 31C62 32 67 36 70 40L82 31L80 46L83 60L70 51C66 56 59 59 51 58C39 57 30 52 30 44Z" fill="#ffb27a" stroke="#e08a55" stroke-width="3" stroke-linejoin="round"/>
       <circle cx="41" cy="41" r="3.5" fill="#5b4760"/><circle cx="42" cy="40" r="1.2" fill="#fff"/>
@@ -222,6 +287,19 @@ details ul{padding-left:18px;margin:6px 0 0;font-size:.9rem}
       <path d="M10 58H90Q87 88 50 89Q13 88 10 58Z" fill="#ffc6d9" stroke="#df7ea3" stroke-width="3.5" stroke-linejoin="round"/>
       <ellipse cx="50" cy="58" rx="40" ry="6" fill="#fff0f6" stroke="#df7ea3" stroke-width="3.5"/>
       <g transform="translate(40 67) scale(.2)" fill="#fff" opacity=".9"><use href="#paw" width="100" height="100"/></g>
+    </symbol>
+    <symbol id="rock" viewBox="0 0 100 100">
+      <ellipse cx="50" cy="86" rx="40" ry="6" fill="#d9d3e0"/>
+      <path d="M12 78L20 48L38 30L62 26L80 42L90 70L78 84L26 86Z" fill="#b9b3c4" stroke="#857d93" stroke-width="4" stroke-linejoin="round"/>
+      <path d="M38 30L46 52L62 26M46 52L80 42M46 52L30 85" fill="none" stroke="#9c94aa" stroke-width="3" stroke-linecap="round"/>
+      <ellipse cx="30" cy="58" rx="6" ry="3" fill="#d6d1de"/><ellipse cx="66" cy="38" rx="5" ry="2.5" fill="#d6d1de"/>
+    </symbol>
+    <symbol id="box" viewBox="0 0 100 100">
+      <path d="M37 33L40 19L47 28M53 28L60 19L63 33" fill="#ffd7a8" stroke="#5b4760" stroke-width="2.5" stroke-linejoin="round"/>
+      <path d="M14 40L50 26L86 40L86 78L50 92L14 78Z" fill="#e8b979" stroke="#b9854a" stroke-width="3.5" stroke-linejoin="round"/>
+      <path d="M14 40L50 54L86 40M50 54V92" fill="none" stroke="#b9854a" stroke-width="3.5"/>
+      <path d="M14 40L3 29L38 15L50 26M86 40L97 29L62 15L50 26" fill="#f2cc92" stroke="#b9854a" stroke-width="3" stroke-linejoin="round"/>
+      <g transform="translate(57 58) scale(.2)" fill="#c99a5e"><use href="#paw" width="100" height="100"/></g>
     </symbol>
   </defs>
 </svg>
@@ -231,7 +309,7 @@ details ul{padding-left:18px;margin:6px 0 0;font-size:.9rem}
   <div class="lobby-card" id="lobbyMain">
     <svg class="logo" style="color:#ffd7a8;--catline:#5b4760"><use href="#cat"/></svg>
     <h1><span class="a">Sequence</span> <span class="b">Mèo</span></h1>
-    <p class="tag">Xếp 5 dấu chân thẳng hàng · 1 đấu 1 online</p>
+    <p class="tag">Xếp 5 dấu chân thẳng hàng · 10 mèo kỹ năng · 7 bản đồ</p>
     <label for="nameInput">Tên của bạn</label>
     <input id="nameInput" maxlength="16" placeholder="VD: Mèo Mướp" autocomplete="off">
     <div class="row"><button class="btn" id="createBtn">🐾 Tạo phòng</button></div>
@@ -240,7 +318,7 @@ details ul{padding-left:18px;margin:6px 0 0;font-size:.9rem}
     <input id="codeInput" maxlength="5" placeholder="ABCDE" autocomplete="off">
     <div class="row"><button class="btn mint" id="joinBtn">Vào phòng</button></div>
     <div class="msg" id="lobbyMsg"></div>
-    <div style="margin-top:10px;font-size:.8rem;color:var(--muted)">Phiên bản 1.6 · đồng hồ 20 giây</div>
+    <div style="margin-top:10px;font-size:.8rem;color:var(--muted)">Phiên bản 2.0 · mèo kỹ năng &amp; bản đồ</div>
   </div>
 
   <div class="lobby-card waiting hidden" id="lobbyWait">
@@ -253,6 +331,7 @@ details ul{padding-left:18px;margin:6px 0 0;font-size:.9rem}
     <p style="margin:16px 0 0;font-weight:700">Đang chờ đối thủ<span class="dots"></span></p>
     <p class="tag" style="font-size:.85rem;margin:6px 0 0">Giữ tab này mở suốt ván — bạn là chủ phòng.</p>
     <p class="tag" style="font-size:.8rem;margin:4px 0 0" id="netInfo">Trực tiếp … · Dự phòng …</p>
+    <div id="setupWait"></div>
   </div>
 </section>
 
@@ -260,8 +339,9 @@ details ul{padding-left:18px;margin:6px 0 0;font-size:.9rem}
 <section id="game" class="hidden">
   <header>
     <div class="title"><svg style="color:#ffd7a8"><use href="#cat"/></svg>Sequence Mèo</div>
-    <div class="room">Phòng <b id="roomCode"></b> <span id="netMode"></span></div><div class="room" style="font-size:.8rem">v1.6</div>
+    <div class="room">Phòng <b id="roomCode"></b> <span id="netMode"></span></div><div class="room" style="font-size:.8rem">v2.0</div>
     <div class="sp"></div>
+    <button class="btn ghost hidden" id="setBtn">⚙️ Luật</button>
     <button class="btn ghost" id="copyBtn2">📋 Link</button>
     <button class="btn ghost" id="muteBtn">🔊 Meo</button>
   </header>
@@ -272,7 +352,9 @@ details ul{padding-left:18px;margin:6px 0 0;font-size:.9rem}
       <div class="hand-wrap">
         <div class="hand-head">
           <span>Bài trên tay</span><span class="sp"></span>
+          <button class="btn ghost glow hidden" id="skillBtn">✨ Dùng</button>
           <button class="btn ghost hidden" id="deadBtn">♻️ Đổi bài chết</button>
+          <button class="btn ghost hidden" id="passBtn">⏭️ Bỏ lượt</button>
         </div>
         <div class="hand" id="hand"></div>
       </div>
@@ -281,7 +363,14 @@ details ul{padding-left:18px;margin:6px 0 0;font-size:.9rem}
       <div class="box">
         <h3>Người chơi</h3>
         <div id="players"></div>
-        <div style="font-size:.85rem;color:var(--muted);margin-top:6px">Cần <b>2 sequence</b> để thắng · Bộ bài còn <b id="deckCount">0</b> lá</div>
+      </div>
+      <div class="box oracle hidden" id="oracleBox">
+        <h3>🔮 Bài của đối thủ</h3>
+        <div class="hand" id="oracleHand"></div>
+      </div>
+      <div class="box">
+        <h3>🗺️ Ván này</h3>
+        <div class="info" id="gameInfo"></div>
       </div>
       <div class="box">
         <h3>Diễn biến</h3>
@@ -290,15 +379,7 @@ details ul{padding-left:18px;margin:6px 0 0;font-size:.9rem}
       <div class="box">
         <details>
           <summary>Luật chơi</summary>
-          <ul>
-            <li>Mỗi người cầm 3 lá. Chọn 1 lá trên tay → các ô đặt được sẽ sáng lên → bấm vào ô để đặt dấu chân.</li>
-            <li>Tạo hàng 5 dấu chân liên tiếp (ngang, dọc, chéo) = 1 sequence. 4 ô bát cá ở góc tính cho cả hai bên.</li>
-            <li>Hai sequence được dùng chung tối đa 1 ô. Có 2 sequence là thắng.</li>
-            <li><b>Mèo Joker (2 mắt mở)</b>: đặt vào bất kỳ ô trống nào.</li>
-            <li><b>Mèo nháy mắt</b>: gỡ 1 dấu chân của đối thủ (trừ dấu đã nằm trong sequence).</li>
-            <li>Mỗi lượt có <b>20 giây</b>. Hết giờ, game tự đánh ngẫu nhiên 1 lá hợp lệ cho bạn.</li>
-            <li>Bài chết: cả 2 ô của lá đó đã có chip → được đổi lấy lá mới (1 lần/lượt), rồi đánh tiếp.</li>
-          </ul>
+          <div id="rules"></div>
         </details>
       </div>
     </aside>
@@ -310,7 +391,7 @@ details ul{padding-left:18px;margin:6px 0 0;font-size:.9rem}
 
 <script>
 "use strict";
-/* ================= Constants ================= */
+/* ==ENGINE START== */
 const PREFIX = "seqmeo-v1-";
 const SUIT = {S:"♠",H:"♥",D:"♦",C:"♣"};
 const RED = s => s==="H"||s==="D";
@@ -325,15 +406,54 @@ QC 9S 9C 8H 9H TH QH QD 5H 3D
 KC 8S TC QC KC AC AD KD 4H 4D
 AC 7S 6S 5S 4S 3S 2S 2H 3H 5D
 XX AD KD QD TD 9D 8D 7D 6D XX`.split(/\s+/);
-const HAND_SIZE = 3, SEQ_TO_WIN = 2, TURN_MS = 20000;
 const CAT_COLORS = {S:"#c9c6d9",H:"#ffc6d9",D:"#ffd7a8",C:"#8a8599"};
 const TEAM_NAME = ["Hồng","Mint"];
+const MAX_GUARDS = 2;
 
+/* Mèo kỹ năng: n = số lá trong bộ bài, need = số ô phải chọn */
+const SKILLS = {
+  cao:     {name:"Mèo Cào",        short:"Cào",        n:1, need:1, desc:"Gỡ 1 dấu chân đối thủ rồi đặt dấu chân của bạn vào đúng ô đó."},
+  day:     {name:"Mèo Đẩy",        short:"Đẩy",        n:1, need:2, desc:"Đẩy 1 dấu chân đối thủ sang 1 ô trống kề bên (8 hướng)."},
+  trom:    {name:"Mèo Trộm",       short:"Trộm",       n:1, need:0, desc:"Lấy ngẫu nhiên 1 lá thường trên tay đối thủ (không lấy Joker hay mèo kỹ năng)."},
+  gac:     {name:"Mèo Canh Gác",   short:"Canh Gác",   n:2, need:1, desc:"Bảo vệ 1 dấu chân của bạn: không bị gỡ, cào, đẩy hay đổi chỗ. Tối đa 2 lần mỗi ván."},
+  ngu:     {name:"Mèo Ngủ",        short:"Ngủ",        n:2, need:1, desc:"Nằm ngủ trên 1 ô trống: không ai đặt được vào ô đó trong 2 vòng."},
+  doi:     {name:"Mèo Đổi Chỗ",    short:"Đổi Chỗ",    n:1, need:2, desc:"Đổi chỗ 1 dấu chân của bạn với 1 dấu chân đối thủ."},
+  tientri: {name:"Mèo Tiên Tri",   short:"Tiên Tri",   n:1, need:0, desc:"Xem toàn bộ bài trên tay đối thủ, rồi đánh tiếp."},
+  nhanh:   {name:"Mèo Nhanh Nhẹn", short:"Nhanh Nhẹn", n:1, need:0, desc:"Lượt này được đánh thêm 2 lá nữa."},
+  cauca:   {name:"Mèo Câu Cá",     short:"Câu Cá",     n:2, need:0, desc:"Rút 2 lá, giữ 1 lá, bỏ 1 lá, rồi đánh tiếp."},
+  thaman:  {name:"Mèo Tham Ăn",    short:"Tham Ăn",    n:1, need:1, desc:"Chiếm 1 ô bát cá hoặc hộp giấy: từ đó ô này chỉ tính cho bạn."},
+};
+const SKILL_KEYS = Object.keys(SKILLS);
+const KEEP_TURN = ["tientri","nhanh","cauca"];
+
+const TERRAIN = {
+  rock:   {name:"Tảng đá",   icon:"🪨", badge:false, desc:"Không ai đặt được, chặn đường sequence."},
+  water:  {name:"Vũng nước", icon:"💧", badge:true,  desc:"Mèo sợ nước: chỉ Mèo Joker mới đặt được vào."},
+  catnip: {name:"Cỏ mèo",    icon:"🌿", badge:true,  desc:"Dấu chân đứng trên cỏ mèo không thể bị gỡ, cào, đẩy hay đổi chỗ."},
+  box:    {name:"Hộp giấy",  icon:"📦", badge:false, desc:"Ô tự do như bát cá, tính cho cả hai bên."},
+  yarn:   {name:"Cuộn len",  icon:"🧶", badge:true,  desc:"Đặt dấu chân vào được đánh thêm 1 lá (1 lần mỗi lượt)."},
+};
+
+/* Bản đồ: chỉ khai báo nửa trên, nửa dưới đối xứng tâm (ô i ↔ 99-i) cho công bằng */
+const MAPS = [
+  {id:"classic", name:"Phòng khách", desc:"Bàn gốc, không có địa hình.", half:{}},
+  {id:"garden",  name:"Vườn cỏ mèo", desc:"Cỏ mèo bảo vệ dấu chân, hộp giấy giữa vườn.", half:{catnip:[22,27,36,44], box:[45]}},
+  {id:"koi",     name:"Hồ cá Koi",   desc:"Hồ nước giữa bàn chỉ Mèo Joker bơi vào được, đá ven bờ.", half:{water:[34,35,44,45], rock:[12,18]}},
+  {id:"boxes",   name:"Kho hộp giấy",desc:"Nhiều hộp giấy (ô tự do) và vài tảng đá.", half:{box:[23,46,71], rock:[14,41]}},
+  {id:"yarn",    name:"Phòng len",   desc:"Cuộn len cho đánh thêm lượt, đá chắn đường.", half:{yarn:[25,37,42], rock:[11,33]}},
+  {id:"maze",    name:"Mê cung đá",  desc:"Tường đá chia bàn thành nhiều ngõ nhỏ.", half:{rock:[16,26,31,32,33], box:[49], catnip:[24]}},
+  {id:"random",  name:"Ngẫu nhiên",  desc:"Địa hình bốc thăm lại mỗi ván.", half:null},
+];
+
+const isSkill = c => c[0]==="*";
+const skillOf = c => c.slice(1);
+const isJack = c => c[0]==="J";
 const isOneEyed = c => c[0]==="J" && (c[1]==="S"||c[1]==="H");
 const isTwoEyed = c => c[0]==="J" && (c[1]==="D"||c[1]==="C");
-const cardLabel = c => c[0]==="J" ? (isOneEyed(c) ? "Mèo nháy mắt" : "Mèo Joker") : RTXT(c[0]) + SUIT[c[1]];
+const isNormal = c => !isSkill(c) && !isJack(c);
+const cardLabel = c => isSkill(c) ? SKILLS[skillOf(c)].name : isJack(c) ? (isOneEyed(c) ? "Mèo nháy mắt" : "Mèo Joker") : RTXT(c[0]) + SUIT[c[1]];
+const pick = a => a[Math.floor(Math.random()*a.length)];
 
-/* ================= Game logic (host-authoritative) ================= */
 function shuffle(a){
   for(let i=a.length-1;i>0;i--){
     const r = new Uint32Array(1); crypto.getRandomValues(r);
@@ -341,30 +461,102 @@ function shuffle(a){
   }
   return a;
 }
-function newDeck(){
+function newDeck(skills){
   const d=[];
   for(let k=0;k<2;k++) for(const s of "SHDC") for(const r of "A23456789TJQK") d.push(r+s);
+  for(const k of skills||[]) if(SKILLS[k]) for(let i=0;i<SKILLS[k].n;i++) d.push("*"+k);
   return shuffle(d);
 }
-function newGame(names, starter){
+function buildTerrain(mapId){
+  const t=Array(100).fill(null);
+  const m=MAPS.find(x=>x.id===mapId)||MAPS[0];
+  let half=m.half;
+  if(!half){
+    half={};
+    const kinds=["rock","rock","water","catnip","box","yarn"];
+    shuffle([...Array(40).keys()].map(x=>x+10)).slice(0,7).forEach(i=>{ const k=pick(kinds); (half[k]=half[k]||[]).push(i); });
+  }
+  for(const [k,arr] of Object.entries(half)) for(const i of arr){ t[i]=k; t[99-i]=k; }
+  return t;
+}
+function newGame(names, starter, cfg){
+  cfg = Object.assign({map:"classic", skills:[], hand:3, turnSec:20, need:2}, cfg||{});
+  const map = MAPS.find(x=>x.id===cfg.map)||MAPS[0];
   const st = {
-    board: LAYOUT.slice(), chips: Array(100).fill(null), locked: Array(100).fill(false),
-    sequences: [], deck: newDeck(), discard: [], hands: [[],[]], names: names.slice(),
-    turn: starter ?? (Math.random()<.5?0:1), winner: null, moveNo: 0, last: null, deadUsed: false, log: [], turnStart: Date.now(), paused: false
+    cfg:{map:cfg.map, skills:cfg.skills.slice(), hand:cfg.hand, turnSec:cfg.turnSec, need:cfg.need}, mapName:map.name,
+    board: LAYOUT.slice(), terrain: buildTerrain(map.id),
+    chips: Array(100).fill(null), locked: Array(100).fill(false), guard: Array(100).fill(false),
+    sleep: Array(100).fill(0), claim: Array(100).fill(null),
+    sequences: [], deck: newDeck(cfg.skills), discard: [], hands: [[],[]], names: names.slice(),
+    turn: starter ?? (Math.random()<.5?0:1), turnNo: 0, winner: null, moveNo: 0, last: null,
+    deadUsed: false, yarnUsed: false, bonus: 0, pending: null, reveal: null, guardsUsed: [0,0],
+    log: [], turnStart: Date.now(), paused: false
   };
-  for(let i=0;i<HAND_SIZE;i++) for(const p of [0,1]) st.hands[p].push(st.deck.pop());
-  st.log.push(`Ván mới! ${st.names[st.turn]} đi trước.`);
+  for(let i=0;i<cfg.hand;i++) for(const p of [0,1]) st.hands[p].push(st.deck.pop());
+  st.log.push(`Ván mới trên bản đồ ${map.name}! ${st.names[st.turn]} đi trước.`);
   return st;
 }
-function draw(st, p){
+function drawCard(st){
   if(!st.deck.length){ st.deck = shuffle(st.discard); st.discard = []; }
-  if(st.deck.length) st.hands[p].push(st.deck.pop());
+  return st.deck.pop();
 }
-function isDead(st, card){
-  if(card[0]==="J") return false;
-  return st.board.every((b,i)=> b!==card || st.chips[i]!==null);
+function draw(st, p){ const c=drawCard(st); if(c) st.hands[p].push(c); }
+
+/* ---- Truy vấn bàn cờ: dùng chung cho state của chủ phòng và view của người chơi ---- */
+const isFree = (g,i) => g.board[i]==="XX" || g.terrain[i]==="box";
+const sleeping = (g,i) => g.sleep[i] > g.turnNo;
+const canHoldChip = (g,i) => !isFree(g,i) && g.terrain[i]!=="rock" && !sleeping(g,i) && g.chips[i]===null;
+const isProtected = (g,i) => g.locked[i] || g.guard[i] || g.terrain[i]==="catnip";
+const owns = (g,i,p) => g.chips[i]===p || (isFree(g,i) && (g.claim[i]===null || g.claim[i]===p));
+const ALL = [...Array(100).keys()];
+function neighbors(i){
+  const r=Math.floor(i/10), c=i%10, out=[];
+  for(let dr=-1;dr<=1;dr++) for(let dc=-1;dc<=1;dc++){
+    if(!dr&&!dc) continue;
+    const rr=r+dr, cc=c+dc;
+    if(rr>=0&&rr<10&&cc>=0&&cc<10) out.push(rr*10+cc);
+  }
+  return out;
 }
-const owns = (st,i,p) => st.board[i]==="XX" || st.chips[i]===p;
+const needCount = c => isSkill(c) ? SKILLS[skillOf(c)].need : 1;
+/* Các ô bấm được cho lá `card`; `first` = ô đã chọn ở bước 1 (kỹ năng 2 bước) */
+function targets(g, p, card, first){
+  const opp=1-p;
+  const oppChip = i => g.chips[i]===opp && !isProtected(g,i);
+  if(isNormal(card)) return ALL.filter(i=>g.board[i]===card && canHoldChip(g,i) && g.terrain[i]!=="water");
+  if(isTwoEyed(card)) return ALL.filter(i=>canHoldChip(g,i));
+  if(isOneEyed(card)) return ALL.filter(oppChip);
+  switch(skillOf(card)){
+    case "cao": return ALL.filter(oppChip);
+    case "day":
+      if(first==null) return ALL.filter(i=>oppChip(i) && neighbors(i).some(j=>canHoldChip(g,j)));
+      return neighbors(first).filter(j=>canHoldChip(g,j));
+    case "gac":
+      if(g.guardsUsed[p]>=MAX_GUARDS) return [];
+      return ALL.filter(i=>g.chips[i]===p && !g.guard[i] && !g.locked[i] && g.terrain[i]!=="catnip");
+    case "ngu": return ALL.filter(i=>canHoldChip(g,i));
+    case "doi":
+      if(first==null) return ALL.some(oppChip) ? ALL.filter(i=>g.chips[i]===p && !g.locked[i]) : [];
+      return ALL.filter(oppChip);
+    case "thaman": return ALL.filter(i=>isFree(g,i) && g.claim[i]===null && !g.locked[i]);
+  }
+  return [];
+}
+const stealable = (g,p) => g.hands ? g.hands[1-p].filter(isNormal).length : g.oppStealable;
+const poolCount = g => g.hands ? g.deck.length+g.discard.length : g.deckCount+g.discardCount;
+function canUse(g, p, card){
+  if(isSkill(card) && SKILLS[skillOf(card)].need===0){
+    const k=skillOf(card);
+    if(k==="trom") return stealable(g,p)>0;
+    if(k==="cauca") return poolCount(g)>0;
+    return true;
+  }
+  return targets(g,p,card).length>0;
+}
+/* Bài chết = không dùng được (Mèo nháy mắt không bao giờ là bài chết, như luật gốc) */
+const isDead = (g,p,c) => !isOneEyed(c) && !canUse(g,p,c);
+const hasAnyMove = (g,p,hand,deadUsed) => hand.some(c=>canUse(g,p,c)) || (!deadUsed && hand.some(c=>isDead(g,p,c)));
+const cellName = (g,i) => g.board[i]==="XX" ? "bát cá" : g.terrain[i]==="box" ? "hộp giấy" : cardLabel(g.board[i]);
 
 function findSequences(st, p, cell){
   const dirs=[[0,1],[1,0],[1,1],[1,-1]];
@@ -390,88 +582,208 @@ function findSequences(st, p, cell){
   return found;
 }
 const seqCount = (st,p) => st.sequences.filter(s=>s.team===p).length;
+function checkSeq(st, p, i){
+  if(!findSequences(st,p,i)) return null;
+  st.log.push(`🎉 ${st.names[p]} tạo được sequence! (${seqCount(st,p)}/${st.cfg.need})`);
+  if(seqCount(st,p)>=st.cfg.need && st.winner===null){ st.winner=p; st.log.push(`🏆 ${st.names[p]} thắng!`); return "win"; }
+  return "seq";
+}
+function place(st, p, i){
+  st.chips[i]=p;
+  if(st.terrain[i]==="yarn" && !st.yarnUsed){
+    st.yarnUsed=true; st.bonus++;
+    st.log.push(`🧶 ${st.names[p]} vớ được cuộn len — đánh thêm 1 lá!`);
+  }
+  return checkSeq(st,p,i) || "place";
+}
+function finish(st, p, last, keep){
+  st.moveNo++; st.last=last; st.turnStart=Date.now();
+  if(st.log.length>80) st.log.splice(0, st.log.length-80);
+  if(st.winner!==null || keep) return;
+  if(st.bonus>0){ st.bonus--; return; }
+  st.turn=1-p; st.turnNo++; st.deadUsed=false; st.yarnUsed=false; st.reveal=null;
+}
 
 function applyAction(st, p, a){
+  if(!a || typeof a!=="object") return "Hành động không hợp lệ.";
   if(st.winner!==null) return "Ván đã kết thúc.";
   if(st.turn!==p) return "Chưa đến lượt bạn.";
-  const hi = st.hands[p].indexOf(a.card);
+  const who=st.names[p], opp=1-p, oname=st.names[opp];
+
+  if(st.pending){
+    if(a.type!=="fish") return "Hãy chọn 1 lá câu được trước.";
+    const cs=st.pending.cards, k=(a.keep===1 && cs.length>1) ? 1 : 0;
+    st.hands[p].push(cs[k]); cs.forEach((c,j)=>{ if(j!==k) st.discard.push(c); });
+    st.pending=null; st.turnStart=Date.now();
+    st.log.push(`🎣 ${who} giữ lại 1 lá.`);
+    return null;
+  }
+  if(a.type==="pass"){
+    if(hasAnyMove(st,p,st.hands[p],st.deadUsed)) return "Bạn vẫn còn nước đi.";
+    st.log.push(`${who} không còn nước đi, bỏ lượt.`);
+    finish(st,p,null,false);
+    return null;
+  }
+  const card=a.card, hi=st.hands[p].indexOf(card);
   if(hi<0) return "Bạn không có lá bài này.";
-  const who = st.names[p];
+  const use=()=>{ st.hands[p].splice(st.hands[p].indexOf(card),1); st.discard.push(card); };
 
   if(a.type==="dead"){
     if(st.deadUsed) return "Mỗi lượt chỉ đổi bài chết 1 lần.";
-    if(!isDead(st,a.card)) return "Lá này chưa phải bài chết.";
-    st.hands[p].splice(hi,1); st.discard.push(a.card); draw(st,p);
-    st.deadUsed = true;
-    st.log.push(`${who} đổi bài chết ${cardLabel(a.card)}.`);
+    if(!isDead(st,p,card)) return "Lá này vẫn dùng được.";
+    use(); draw(st,p); st.deadUsed=true;
+    st.log.push(`${who} đổi bài chết ${cardLabel(card)}.`);
     return null;
   }
-  if(a.type!=="play") return "Hành động không hợp lệ.";
-  const i = a.cell;
-  if(!(i>=0&&i<100) || st.board[i]==="XX") return "Không thể chọn ô góc.";
-  let kind="place";
-  if(isOneEyed(a.card)){
-    if(st.chips[i]!==1-p) return "Mèo nháy mắt chỉ gỡ được dấu chân của đối thủ.";
-    if(st.locked[i]) return "Dấu chân này đã nằm trong sequence, không gỡ được.";
-    st.chips[i]=null; kind="remove";
-  } else {
-    if(st.chips[i]!==null) return "Ô này đã có dấu chân.";
-    if(!isTwoEyed(a.card) && st.board[i]!==a.card) return "Lá bài không khớp với ô này.";
-    st.chips[i]=p;
+  if(a.type==="play"){
+    if(isSkill(card)) return "Hành động không hợp lệ.";
+    const i=a.cell;
+    if(!targets(st,p,card).includes(i)) return "Không đánh được vào ô này.";
+    use(); draw(st,p);
+    let kind;
+    if(isOneEyed(card)){
+      st.chips[i]=null; st.guard[i]=false; kind="remove";
+      st.log.push(`${who} dùng Mèo nháy mắt gỡ dấu chân ở ${cellName(st,i)}.`);
+    } else {
+      st.log.push(`${who} đánh ${cardLabel(card)} → ${cellName(st,i)}.`);
+      kind=place(st,p,i);
+    }
+    finish(st,p,{cells:[i],team:p,kind},false);
+    return null;
   }
-  st.hands[p].splice(hi,1); st.discard.push(a.card); draw(st,p);
-  const cellTxt = cardLabel(st.board[i]);
-  if(kind==="remove") st.log.push(`${who} dùng ${cardLabel(a.card)} gỡ dấu chân ở ${cellTxt}.`);
-  else st.log.push(`${who} đánh ${cardLabel(a.card)} → ${cellTxt}.`);
-  if(kind==="place"){
-    const n = findSequences(st,p,i);
-    if(n){ kind="seq"; st.log.push(`🎉 ${who} tạo được sequence! (${seqCount(st,p)}/${SEQ_TO_WIN})`); }
-    if(seqCount(st,p)>=SEQ_TO_WIN){ st.winner=p; kind="win"; st.log.push(`🏆 ${who} thắng!`); }
+  if(a.type!=="skill" || !isSkill(card) || !SKILLS[skillOf(card)]) return "Hành động không hợp lệ.";
+  const k=skillOf(card), need=SKILLS[k].need;
+  const cells=Array.isArray(a.cells) ? a.cells : [];
+  if(need===0){ if(!canUse(st,p,card)) return "Chưa dùng được kỹ năng này."; }
+  else {
+    if(!targets(st,p,card).includes(cells[0])) return "Ô không hợp lệ.";
+    if(need===2 && !targets(st,p,card,cells[0]).includes(cells[1])) return "Ô thứ hai không hợp lệ.";
   }
-  st.moveNo++; st.last={cell:i, team:p, kind};
-  st.deadUsed=false;
-  if(st.winner===null) st.turn = 1-p;
-  st.turnStart=Date.now();
-  if(st.log.length>60) st.log.splice(0, st.log.length-60);
+  const [i,j]=cells;
+  let kind="skill", keep=false;
+  switch(k){
+    case "cao": {
+      use(); draw(st,p);
+      st.chips[i]=null; st.guard[i]=false;
+      st.log.push(`🐾 ${who} dùng Mèo Cào chiếm ô ${cellName(st,i)} của ${oname}.`);
+      const r=place(st,p,i); kind = r==="place" ? "scratch" : r;
+      break;
+    }
+    case "day": {
+      use(); draw(st,p);
+      st.chips[i]=null; st.chips[j]=opp;
+      st.log.push(`💨 ${who} đẩy dấu chân của ${oname} từ ${cellName(st,i)} sang ${cellName(st,j)}.`);
+      kind = checkSeq(st,opp,j) || "push";
+      break;
+    }
+    case "trom": {
+      use();
+      const idx=st.hands[opp].map((c,x)=>isNormal(c)?x:-1).filter(x=>x>=0);
+      const [c]=st.hands[opp].splice(pick(idx),1);
+      st.hands[p].push(c); draw(st,opp);
+      st.log.push(`😼 ${who} dùng Mèo Trộm cuỗm 1 lá của ${oname}!`);
+      kind="steal";
+      break;
+    }
+    case "gac":
+      use(); draw(st,p);
+      st.guard[i]=true; st.guardsUsed[p]++;
+      st.log.push(`🛡️ Mèo Canh Gác của ${who} bảo vệ ô ${cellName(st,i)}.`);
+      kind="guard";
+      break;
+    case "ngu":
+      use(); draw(st,p);
+      st.sleep[i]=st.turnNo+4;
+      st.log.push(`💤 Mèo Ngủ của ${who} nằm chặn ô ${cellName(st,i)} trong 2 vòng.`);
+      kind="sleep";
+      break;
+    case "doi": {
+      use(); draw(st,p);
+      st.chips[i]=opp; st.chips[j]=p;
+      st.guard[j]=st.guard[i]; st.guard[i]=false;
+      st.log.push(`🔄 ${who} đổi chỗ ${cellName(st,i)} ↔ ${cellName(st,j)}.`);
+      const r1=checkSeq(st,p,j), r2=checkSeq(st,opp,i);
+      kind = r1 || r2 || "swap";
+      break;
+    }
+    case "tientri":
+      use(); draw(st,p);
+      st.reveal=p; keep=true;
+      st.log.push(`🔮 ${who} dùng Mèo Tiên Tri nhìn trộm bài của ${oname}.`);
+      break;
+    case "nhanh":
+      use(); draw(st,p);
+      st.bonus++; keep=true;
+      st.log.push(`⚡ ${who} dùng Mèo Nhanh Nhẹn — được đánh thêm 2 lá!`);
+      break;
+    case "cauca": {
+      use();
+      const got=[drawCard(st),drawCard(st)].filter(Boolean);
+      if(got.length>1) st.pending={p, cards:got}; else got.forEach(c=>st.hands[p].push(c));
+      keep=true;
+      st.log.push(`🎣 ${who} thả cần câu…`);
+      break;
+    }
+    case "thaman":
+      use(); draw(st,p);
+      st.claim[i]=p;
+      st.log.push(`🐟 ${who} dùng Mèo Tham Ăn chiếm ô ${cellName(st,i)}.`);
+      kind = checkSeq(st,p,i) || "claim";
+      break;
+  }
+  finish(st,p,{cells:cells.slice(0,need),team:p,kind,skill:k},keep);
   return null;
 }
+
 function viewFor(st, p){
+  const opp=1-p, ms=st.cfg.turnSec*1000;
   return {
-    board:st.board, chips:st.chips, locked:st.locked, names:st.names, turn:st.turn, winner:st.winner,
-    moveNo:st.moveNo, last:st.last, deadUsed:st.deadUsed, log:st.log,
-    hand:st.hands[p], oppCount:st.hands[1-p].length, deckCount:st.deck.length,
-    seqs:[seqCount(st,0), seqCount(st,1)], me:p,
-    timeLeft: st.paused ? TURN_MS : Math.max(0, TURN_MS-(Date.now()-st.turnStart)), paused: st.paused
+    board:st.board, terrain:st.terrain, chips:st.chips, locked:st.locked, guard:st.guard, sleep:st.sleep, claim:st.claim,
+    names:st.names, turn:st.turn, turnNo:st.turnNo, winner:st.winner, moveNo:st.moveNo, last:st.last,
+    deadUsed:st.deadUsed, bonus: st.turn===p ? st.bonus : 0, log:st.log, cfg:st.cfg, mapName:st.mapName,
+    hand:st.hands[p], oppCount:st.hands[opp].length, oppHand: st.reveal===p ? st.hands[opp].slice() : null,
+    oppStealable: st.hands[opp].filter(isNormal).length, deckCount:st.deck.length, discardCount:st.discard.length,
+    seqs:[seqCount(st,0), seqCount(st,1)], guardsUsed:st.guardsUsed, me:p,
+    pending: st.pending && st.pending.p===p ? st.pending.cards : null, oppPending: !!(st.pending && st.pending.p!==p),
+    timeLeft: !ms ? 0 : st.paused ? ms : Math.max(0, ms-(Date.now()-st.turnStart)), paused: st.paused
   };
 }
-/* Hết giờ: đánh 1 nước hợp lệ ngẫu nhiên (chọn ngẫu nhiên lá bài, rồi ngẫu nhiên ô) */
-function legalCells(st, p, card){
-  const out=[];
-  for(let i=0;i<100;i++){
-    if(st.board[i]==="XX") continue;
-    if(isOneEyed(card)){ if(st.chips[i]===1-p && !st.locked[i]) out.push(i); }
-    else if(st.chips[i]===null && (isTwoEyed(card) || st.board[i]===card)) out.push(i);
+
+/* Mọi nước đi hợp lệ, gom theo lá bài */
+function allActions(st, p){
+  const groups=[], seen=new Set();
+  for(const c of st.hands[p]){
+    if(seen.has(c)) continue; seen.add(c);
+    const list=[];
+    if(!isSkill(c)) targets(st,p,c).forEach(i=>list.push({type:"play",card:c,cell:i}));
+    else {
+      const need=SKILLS[skillOf(c)].need;
+      if(need===0){ if(canUse(st,p,c)) list.push({type:"skill",card:c,cells:[]}); }
+      else targets(st,p,c).forEach(i=>{
+        if(need===1) list.push({type:"skill",card:c,cells:[i]});
+        else targets(st,p,c,i).forEach(j=>list.push({type:"skill",card:c,cells:[i,j]}));
+      });
+    }
+    if(list.length) groups.push(list);
   }
-  return out;
+  return groups;
 }
-const pick = a => a[Math.floor(Math.random()*a.length)];
+/* Hết giờ: chọn ngẫu nhiên 1 lá dùng được, rồi ngẫu nhiên 1 cách dùng */
 function autoPlay(st, p){
-  const who=st.names[p];
-  const options = () => st.hands[p].map(c=>({c, cells:legalCells(st,p,c)})).filter(o=>o.cells.length);
-  let opts=options();
-  if(!opts.length && !st.deadUsed){
-    const dead=st.hands[p].find(c=>isDead(st,c));
-    if(dead){ applyAction(st,p,{type:"dead",card:dead}); opts=options(); }
+  st.log.push(`⏰ ${st.names[p]} hết giờ — tự đánh ngẫu nhiên.`);
+  if(st.pending) applyAction(st,p,{type:"fish", keep:Math.random()<.5?0:1});
+  for(let tries=0; tries<2; tries++){
+    let groups=allActions(st,p);
+    const main=groups.filter(l=>!(l[0].type==="skill" && KEEP_TURN.includes(skillOf(l[0].card))));
+    if(main.length) groups=main;
+    if(groups.length){ applyAction(st,p,pick(pick(groups))); return; }
+    const dead=st.hands[p].find(c=>isDead(st,p,c));
+    if(dead && !st.deadUsed){ applyAction(st,p,{type:"dead",card:dead}); continue; }
+    break;
   }
-  st.log.push(`⏰ ${who} hết giờ — tự đánh ngẫu nhiên.`);
-  if(!opts.length){
-    st.log.push(`${who} không có nước đi, mất lượt.`);
-    st.turn=1-p; st.turnStart=Date.now(); st.deadUsed=false; st.moveNo++; st.last=null;
-    return;
-  }
-  const o=pick(opts);
-  applyAction(st,p,{type:"play", card:o.c, cell:pick(o.cells)});
+  applyAction(st,p,{type:"pass"});
 }
+/* ==ENGINE END== */
 
 /* ================= Sound ================= */
 let ac=null, muted=false;
@@ -496,10 +808,18 @@ function meowOnce(t, base, len){
 function meow(kind){
   if(muted || !audio()) return;
   const t=ac.currentTime+.02;
-  if(kind==="remove"){ meowOnce(t,300,.5); }
-  else if(kind==="seq"){ meowOnce(t,560,.3); meowOnce(t+.33,700,.4); }
-  else if(kind==="win"){ meowOnce(t,520,.28); meowOnce(t+.3,640,.28); meowOnce(t+.6,800,.55); }
-  else meowOnce(t,480+Math.random()*120,.38);
+  switch(kind){
+    case "remove": meowOnce(t,300,.5); break;
+    case "seq": meowOnce(t,560,.3); meowOnce(t+.33,700,.4); break;
+    case "win": meowOnce(t,520,.28); meowOnce(t+.3,640,.28); meowOnce(t+.6,800,.55); break;
+    case "scratch": meowOnce(t,380,.18); meowOnce(t+.16,640,.32); break;
+    case "push": case "swap": meowOnce(t,520,.2); meowOnce(t+.2,430,.25); break;
+    case "steal": meowOnce(t,700,.15); meowOnce(t+.14,820,.18); break;
+    case "guard": case "claim": meowOnce(t,440,.45); break;
+    case "sleep": meowOnce(t,250,.7); break;
+    case "skill": meowOnce(t,760,.22); meowOnce(t+.22,900,.25); break;
+    default: meowOnce(t,480+Math.random()*120,.38);
+  }
 }
 
 /* ================= Networking =================
@@ -585,7 +905,7 @@ function onGuestConn(c){
       if(guestConn && guestConn!==c && guestConn.open && guestCid!==m.cid){ c.send({t:"full"}); setTimeout(()=>c.close(),300); return; }
       if(guestConn && guestConn!==c){ const old=guestConn; guestConn=c; old.close(); }
       guestConn=c; guestCid=m.cid; guestName=String(m.name||"Mèo khách").slice(0,16);
-      if(!state){ state=newGame([myName,guestName]); startGameUI(); }
+      if(!state){ state=newGame([myName,guestName], undefined, settings); startGameUI(); }
       else state.names[1]=guestName;
       broadcast();
     } else if(m.t==="act" && c===guestConn){
@@ -602,7 +922,8 @@ setInterval(()=>{
   const online = !!(guestConn && guestConn.open);
   if(!online){ if(!state.paused){ state.paused=true; broadcast(); } state.turnStart=Date.now(); return; }
   if(state.paused){ state.paused=false; state.turnStart=Date.now(); broadcast(); return; }
-  if(Date.now()-state.turnStart>=TURN_MS){ autoPlay(state,state.turn); broadcast(); }
+  const ms=state.cfg.turnSec*1000;
+  if(ms && Date.now()-state.turnStart>=ms){ autoPlay(state,state.turn); broadcast(); }
 },250);
 function broadcast(){
   onView(viewFor(state,0));
@@ -708,159 +1029,320 @@ function sendAction(a){
   else toast("Chưa kết nối với chủ phòng.");
 }
 
+
+/* ================= Luật phòng (chủ phòng chỉnh) ================= */
+function normSettings(s){
+  s=s||{};
+  return {
+    map: MAPS.some(m=>m.id===s.map) ? s.map : "garden",
+    skills: Array.isArray(s.skills) ? SKILL_KEYS.filter(k=>s.skills.includes(k)) : SKILL_KEYS.slice(),
+    hand: [3,5,7].includes(s.hand) ? s.hand : 3,
+    turnSec: [0,15,20,30,45].includes(s.turnSec) ? s.turnSec : 20,
+    need: [1,2,3].includes(s.need) ? s.need : 2
+  };
+}
+let settings = (()=>{ try{ return normSettings(JSON.parse(localStorage.getItem("seqmeo-settings")||"null")); }catch(e){ return normSettings(); } })();
+function saveSettings(){ try{ localStorage.setItem("seqmeo-settings", JSON.stringify(settings)); }catch(e){} }
+const RANDOM_DOTS = new Set([12,24,37,45,54,62,75,87]);
+function miniMap(id){
+  const t = id==="random" ? null : buildTerrain(id);
+  return `<div class="mini-map">${LAYOUT.map((b,i)=>`<i class="m-${b==="XX"?"XX":t?(t[i]||""):RANDOM_DOTS.has(i)?"rand":""}"></i>`).join("")}</div>`;
+}
+const SKILL_LOOK = {
+  cao:     {fur:"#ffb27a", bg:"#fff0e3", bd:"#f7cfae", icon:"🐾", face:"cat"},
+  day:     {fur:"#c9c6d9", bg:"#eaf4ff", bd:"#c7def5", icon:"💨", face:"cat"},
+  trom:    {fur:"#8a8599", bg:"#efedf5", bd:"#d3cfe0", icon:"🕶️", face:"catsly"},
+  gac:     {fur:"#f2e2c4", bg:"#e9f8f0", bd:"#bfe6d2", icon:"🛡️", face:"cat"},
+  ngu:     {fur:"#ffd1e0", bg:"#f2eeff", bd:"#d9cff5", icon:"💤", face:"catsleep"},
+  doi:     {fur:"#ffe08a", bg:"#fffbe6", bd:"#f3e3a6", icon:"🔄", face:"catwink"},
+  tientri: {fur:"#d9ccf5", bg:"#f3edff", bd:"#d6c8f2", icon:"🔮", face:"cat"},
+  nhanh:   {fur:"#ffcf6e", bg:"#fff6dc", bd:"#f5dc9c", icon:"⚡", face:"catwink"},
+  cauca:   {fur:"#a8dcf0", bg:"#e8f7fc", bd:"#bfe2f0", icon:"🎣", face:"cat"},
+  thaman:  {fur:"#ffc6d9", bg:"#fff0f5", bd:"#f7cddd", icon:"🐟", face:"cat"},
+};
+const pillH = (key,val,label) => `<button class="pill${settings[key]===val?" on":""}" data-set="${key}" data-val="${val}">${label}</button>`;
+function setupHTML(){
+  const m=MAPS.find(x=>x.id===settings.map);
+  return `<div class="setup">
+    <h4>🗺️ Bản đồ</h4>
+    <div class="maps">${MAPS.map(x=>`<button class="mapbtn${x.id===settings.map?" on":""}" data-map="${x.id}">${miniMap(x.id)}${x.name}</button>`).join("")}</div>
+    <div class="mapdesc">${m.desc}</div>
+    <h4>🐱 Mèo kỹ năng <button class="pill sm" data-allskills="1">${settings.skills.length?"Tắt hết":"Bật hết"}</button></h4>
+    <div class="seg">${SKILL_KEYS.map(k=>`<button class="pill${settings.skills.includes(k)?" on":""}" data-skill="${k}" title="${SKILLS[k].desc}">${SKILL_LOOK[k].icon} ${SKILLS[k].short}</button>`).join("")}</div>
+    <h4>🃏 Số lá trên tay</h4><div class="seg">${[3,5,7].map(n=>pillH("hand",n,n+" lá")).join("")}</div>
+    <h4>⏰ Thời gian mỗi lượt</h4><div class="seg">${[0,15,20,30,45].map(n=>pillH("turnSec",n,n?n+" giây":"Không giới hạn")).join("")}</div>
+    <h4>🏆 Số sequence để thắng</h4><div class="seg">${[1,2,3].map(n=>pillH("need",n,String(n))).join("")}</div>
+  </div>`;
+}
+function bindSetup(el){
+  el.innerHTML=setupHTML();
+  el.onclick=e=>{
+    const b=e.target.closest("button"); if(!b) return;
+    if(b.dataset.map) settings.map=b.dataset.map;
+    else if(b.dataset.skill){ const k=b.dataset.skill; settings.skills = settings.skills.includes(k) ? settings.skills.filter(x=>x!==k) : SKILL_KEYS.filter(x=>x===k||settings.skills.includes(x)); }
+    else if(b.dataset.allskills) settings.skills = settings.skills.length ? [] : SKILL_KEYS.slice();
+    else if(b.dataset.set) settings[b.dataset.set]=+b.dataset.val;
+    else return;
+    saveSettings(); bindSetup(el);
+  };
+}
+function openSettings(){
+  openOverlay(`<h2>⚙️ Luật chơi</h2><p class="tag" style="margin:0">Luật mới áp dụng từ ván sau.</p><div id="setupModal"></div>
+    <div class="row"><button class="btn" id="applyNow">🐾 Chơi ván mới ngay</button></div>
+    <div class="row"><button class="btn ghost" id="closeSet">Để ván sau</button></div>`, "set", true);
+  bindSetup($("setupModal"));
+  $("applyNow").onclick=()=>{ if(!state) return; state=newGame(state.names, undefined, settings); prevMove=-1; $("overlay").classList.add("hidden"); broadcast(); };
+  $("closeSet").onclick=()=>$("overlay").classList.add("hidden");
+}
+
 /* ================= UI ================= */
+let firstCell=null;
 function startGameUI(){
   $("lobby").classList.add("hidden"); $("game").classList.remove("hidden");
   $("roomCode").textContent=roomCode;
+  $("setBtn").classList.toggle("hidden", !isHost);
+  $("rules").innerHTML=rulesHTML();
   if(!isHost) history.replaceState(null,"","?room="+roomCode);
+}
+function rulesHTML(){
+  return `<ul>
+    <li>Chọn 1 lá trên tay → các ô dùng được sẽ sáng lên → bấm vào ô.</li>
+    <li>5 dấu chân liên tiếp (ngang, dọc, chéo) = 1 sequence. Bát cá ở góc và hộp giấy là ô tự do, tính cho cả hai bên. Hai sequence được dùng chung tối đa 1 ô.</li>
+    <li><b>Mèo Joker</b>: đặt vào ô trống bất kỳ. <b>Mèo nháy mắt</b>: gỡ 1 dấu chân đối thủ.</li>
+    <li>Dấu chân nằm trong sequence, được Mèo Canh Gác bảo vệ, hoặc đứng trên cỏ mèo thì không bị gỡ, cào, đẩy hay đổi chỗ.</li>
+    <li>Lá không dùng được là <b>bài chết</b>: đổi lấy lá mới, 1 lần mỗi lượt. Không còn nước nào thì bỏ lượt.</li>
+    <li>Hết giờ, game tự đánh ngẫu nhiên giúp bạn.</li></ul>
+    <p class="rh">🐱 Mèo kỹ năng</p>
+    <ul>${SKILL_KEYS.map(k=>`<li>${SKILL_LOOK[k].icon} <b>${SKILLS[k].name}</b> (${SKILLS[k].n} lá): ${SKILLS[k].desc}</li>`).join("")}</ul>
+    <p class="rh">🗺️ Địa hình</p>
+    <ul>${Object.values(TERRAIN).map(x=>`<li>${x.icon} <b>${x.name}</b>: ${x.desc}</li>`).join("")}</ul>`;
 }
 const chipSVG = (team, lock, isNew) =>
   `<svg class="chip t${team}${lock?" lock":""}${isNew?" new":""}" viewBox="0 0 100 100">
      <circle class="bg" cx="50" cy="50" r="44"/><circle class="ring" cx="50" cy="50" r="36"/>
      <use class="paw" href="#paw" x="18" y="16" width="64" height="64"/></svg>`;
 
+function cardHTML(c, attrs, cls){
+  attrs=attrs||""; cls=cls||"";
+  if(isSkill(c)){
+    const k=skillOf(c), L=SKILL_LOOK[k], S=SKILLS[k];
+    return `<button class="card skill${cls}" ${attrs} style="--sbg:${L.bg};--sbd:${L.bd}" title="${S.name}: ${S.desc}">
+      <svg class="c-face" style="color:${L.fur}"><use href="#${L.face}"/></svg>
+      <span class="c-ico">${L.icon}</span><span class="c-lbl"><small>MÈO</small>${S.short}</span></button>`;
+  }
+  const red=RED(c[1]);
+  if(isJack(c)){
+    const one=isOneEyed(c);
+    return `<button class="card jack${cls}" ${attrs} title="${one?"Gỡ 1 dấu chân đối thủ":"Đặt vào ô trống bất kỳ"}">
+      <svg class="c-face" style="color:${one?"#d9ccf5":"#ffd7a8"}"><use href="#${one?"catwink":"cat"}"/></svg>
+      <span class="c-lbl">${one?"GỠ CHIP":"JOKER"}</span></button>`;
+  }
+  return `<button class="card ${red?"red":""}${cls}" ${attrs}>
+    <span class="c-rk">${RTXT(c[0])}</span><span class="c-st">${SUIT[c[1]]}</span>
+    <svg class="c-cat" style="color:${CAT_COLORS[c[1]]}"><use href="#cat"/></svg>
+    <span class="c-big">${SUIT[c[1]]}</span></button>`;
+}
+
 function onView(v){
   const moved = view && v.moveNo!==prevMove;
   if(moved && v.last) meow(v.last.kind);
-  if(!view || v.moveNo!==prevMove || v.hand.join()!==view.hand.join()) selected=null;
+  if(!view || v.moveNo!==prevMove || v.hand.join()!==view.hand.join()){ selected=null; firstCell=null; }
   prevMove=v.moveNo; view=v;
-  deadline = performance.now() + (v.timeLeft ?? TURN_MS);
+  deadline = performance.now() + (v.timeLeft||0);
   render(moved);
-  if(v.winner!==null) showWinner(); else closeOverlay("win");
+  if(v.winner!==null) showWinner();
+  else {
+    closeOverlay("win");
+    if(v.pending) showFish(); else closeOverlay("fish");
+  }
+}
+
+function hintFor(v, c){
+  const me=v.me;
+  if(isDead(v,me,c)) return `${cardLabel(c)} chưa dùng được — bấm ♻️ để đổi lá khác`;
+  if(isNormal(c)) return `Đặt ${cardLabel(c)} vào ô đang sáng`;
+  if(isTwoEyed(c)) return "Mèo Joker: bấm vào ô trống bất kỳ (kể cả vũng nước)";
+  if(isOneEyed(c)) return canUse(v,me,c) ? "Mèo nháy mắt: bấm dấu chân đối thủ để gỡ" : "Mèo nháy mắt: chưa có dấu chân nào gỡ được";
+  const k=skillOf(c), S=SKILLS[k];
+  const steps={
+    cao:["chọn dấu chân đối thủ để cào và chiếm chỗ"],
+    day:["chọn dấu chân đối thủ muốn đẩy","chọn ô trống kề bên để đẩy tới (bấm lại ô vàng để chọn lại)"],
+    gac:[`chọn dấu chân của bạn để bảo vệ (còn ${MAX_GUARDS-v.guardsUsed[me]} lần)`],
+    ngu:["chọn ô trống cho mèo nằm ngủ"],
+    doi:["chọn dấu chân của bạn","chọn dấu chân đối thủ để đổi chỗ (bấm lại ô vàng để chọn lại)"],
+    thaman:["chọn 1 ô bát cá hoặc hộp giấy để chiếm"]
+  };
+  if(S.need===0) return `${S.name}: ${S.desc} Bấm ✨ để dùng.`;
+  return `${S.name}: ${steps[k][firstCell!==null?1:0]}`;
+}
+
+function cellHTML(v, i, tset, animate){
+  const c=v.board[i], ter=v.terrain[i], chip=v.chips[i];
+  const lastCells=(v.last&&v.last.cells)||[], isLast=lastCells.includes(i);
+  const cls=["cell"];
+  if(c==="XX") cls.push("corner"); else cls.push(RED(c[1])?"red":"black");
+  if(ter) cls.push("t-"+ter);
+  if(isLast) cls.push("last");
+  if(tset.has(i)) cls.push("target");
+  if(i===firstCell) cls.push("picked");
+  let inner="";
+  if(c==="XX") inner=`<svg class="terr"><use href="#bowl"/></svg>`;
+  else if(ter==="box") inner=`<svg class="terr"><use href="#box"/></svg>`;
+  else {
+    inner=`<span class="rk">${RTXT(c[0])}</span><span class="st">${SUIT[c[1]]}</span><svg class="mini" style="color:${CAT_COLORS[c[1]]}"><use href="#cat"/></svg>`;
+    if(ter==="rock") inner+=`<svg class="terr"><use href="#rock"/></svg>`;
+    if(ter && TERRAIN[ter].badge) inner+=`<span class="badge">${TERRAIN[ter].icon}</span>`;
+  }
+  if(isFree(v,i) && v.claim[i]!==null) inner+=`<span class="claim t${v.claim[i]}"></span><svg class="claimpaw" style="color:var(--${v.claim[i]?"mint":"pink"}-d)"><use href="#paw"/></svg>`;
+  if(sleeping(v,i)) inner+=`<svg class="sleepcat"><use href="#catsleep"/></svg><span class="zz">z${Math.ceil((v.sleep[i]-v.turnNo)/2)}</span>`;
+  if(chip!==null){
+    inner+=chipSVG(chip, v.locked[i], animate && isLast && v.last.kind!=="remove");
+    if(v.guard[i]) inner+=`<span class="shield">🛡️</span>`;
+  }
+  return `<div class="${cls.join(" ")}" data-i="${i}">${inner}</div>`;
 }
 
 function render(animate){
-  const v=view, me=v.me, myTurn=v.turn===me && v.winner===null;
+  const v=view, me=v.me, opp=1-me, myTurn=v.turn===me && v.winner===null;
   const selCard = selected!==null ? v.hand[selected] : null;
+  if(!selCard) firstCell=null;
 
   // status
   const st=$("status");
   st.classList.toggle("my", myTurn);
   let txt;
-  if(v.winner!==null) txt = v.winner===me ? "🏆 Bạn thắng rồi!" : `😿 ${v.names[v.winner]} thắng.`;
+  if(v.winner!==null) txt = v.winner===me ? "🏆 Bạn thắng rồi!" : `😿 ${esc(v.names[v.winner])} thắng.`;
   else if(myTurn){
-    if(!selCard) txt="Lượt của bạn — chọn 1 lá bài";
-    else if(isTwoEyed(selCard)) txt="Mèo 2 mắt: bấm vào ô trống bất kỳ";
-    else if(isOneEyed(selCard)) txt="Mèo nháy mắt: bấm vào dấu chân đối thủ để gỡ";
-    else txt=`Đặt ${cardLabel(selCard)} vào 1 trong 2 ô trên bàn`;
-  } else txt=`Đang chờ ${v.names[v.turn]}…`;
+    if(v.pending) txt="🎣 Chọn 1 trong 2 lá câu được";
+    else if(!selCard) txt="Lượt của bạn — chọn 1 lá bài";
+    else txt=hintFor(v,selCard);
+    if(v.bonus) txt+=` <b style="color:var(--lav-d)">(+${v.bonus} lá)</b>`;
+  } else txt = v.oppPending ? `${esc(v.names[v.turn])} đang chọn lá câu được…` : `Đang chờ ${esc(v.names[v.turn])}…`;
   st.innerHTML=`<span class="dot" style="background:var(--${v.turn===0?"pink":"mint"})"></span><span class="stxt">${txt}</span>
-    <span class="timer${v.winner!==null?" hidden":""}" id="timer"></span><span class="tbar" id="tbar" style="background:var(--${v.turn===0?"pink-d":"mint-d"})"></span>`;
+    <span class="timer${v.winner!==null||!v.cfg.turnSec?" hidden":""}" id="timer"></span><span class="tbar" id="tbar" style="background:var(--${v.turn===0?"pink-d":"mint-d"})"></span>`;
   tickTimer();
 
   // board
-  let h="";
-  for(let i=0;i<100;i++){
-    const c=v.board[i];
-    const last = v.last && v.last.cell===i;
-    if(c==="XX"){ h+=`<div class="cell corner" data-i="${i}"><svg><use href="#bowl"/></svg></div>`; continue; }
-    const chip = v.chips[i];
-    let target=false;
-    if(selCard && v.winner===null){
-      if(isOneEyed(selCard)) target = chip===1-me && !v.locked[i];
-      else if(isTwoEyed(selCard)) target = chip===null;
-      else target = chip===null && c===selCard;
-    }
-    h+=`<div class="cell ${RED(c[1])?"red":"black"}${last?" last":""}${target?" target":""}" data-i="${i}">
-      <span class="rk">${RTXT(c[0])}</span><span class="st">${SUIT[c[1]]}</span>
-      <svg class="mini" style="color:${CAT_COLORS[c[1]]}"><use href="#cat"/></svg>
-      ${chip!==null ? chipSVG(chip, v.locked[i], animate && last && v.last.kind!=="remove") : ""}
-    </div>`;
+  const tset=new Set();
+  if(selCard && v.winner===null && !v.pending && needCount(selCard)>0){
+    const list = (needCount(selCard)===2 && firstCell!==null) ? targets(v,me,selCard,firstCell) : targets(v,me,selCard);
+    list.forEach(i=>tset.add(i));
   }
+  let h="";
+  for(let i=0;i<100;i++) h+=cellHTML(v,i,tset,animate);
   $("board").innerHTML=h;
 
   // hand
-  $("hand").innerHTML = v.hand.map((c,i)=>{
-    const red=RED(c[1]), sel=i===selected?" sel":"";
-    if(c[0]==="J"){
-      const one=isOneEyed(c);
-      return `<button class="card jack ${red?"red":""}${sel}" data-h="${i}" title="${one?"Gỡ 1 dấu chân đối thủ":"Đặt vào ô trống bất kỳ"}">
-        <svg class="c-face" style="color:${one?"#d9ccf5":"#ffd7a8"}"><use href="#${one?"catwink":"cat"}"/></svg>
-        <span class="c-lbl">${one?"GỠ CHIP":"JOKER"}</span></button>`;
-    }
-    const dead = isDeadView(c) ? " dead" : "";
-    return `<button class="card ${red?"red":""}${sel}${dead}" data-h="${i}">
-      <span class="c-rk">${RTXT(c[0])}</span><span class="c-st">${SUIT[c[1]]}</span>
-      <svg class="c-cat" style="color:${CAT_COLORS[c[1]]}"><use href="#cat"/></svg>
-      <span class="c-big">${SUIT[c[1]]}</span></button>`;
-  }).join("");
-
-  const showDead = myTurn && selCard && isDeadView(selCard) && !v.deadUsed;
-  $("deadBtn").classList.toggle("hidden", !showDead);
+  $("hand").innerHTML = v.hand.map((c,i)=>cardHTML(c, `data-h="${i}"`, (i===selected?" sel":"")+(isDead(v,me,c)?" dead":""))).join("");
+  const canAct = myTurn && !v.pending;
+  $("deadBtn").classList.toggle("hidden", !(canAct && selCard && isDead(v,me,selCard) && !v.deadUsed));
+  const showSkill = canAct && selCard && isSkill(selCard) && SKILLS[skillOf(selCard)].need===0 && canUse(v,me,selCard);
+  $("skillBtn").classList.toggle("hidden", !showSkill);
+  if(showSkill) $("skillBtn").textContent = `✨ Dùng ${SKILLS[skillOf(selCard)].name}`;
+  $("passBtn").classList.toggle("hidden", !(canAct && !hasAnyMove(v,me,v.hand,v.deadUsed)));
 
   // players
-  const opp=1-me;
   const oppOnline = isHost ? !!(guestConn&&guestConn.open) : true;
   $("players").innerHTML=[me,opp].map(p=>`
     <div class="player${v.turn===p&&v.winner===null?" turn":""}">
       <svg style="color:var(--${p===0?"pink":"mint"})"><use href="#paw"/></svg>
       <div><div class="nm">${esc(v.names[p])}${p===me?" (bạn)":""}</div>
-        <div class="sub">Đội ${TEAM_NAME[p]} · ${p===me?v.hand.length:v.oppCount} lá
+        <div class="sub">Đội ${TEAM_NAME[p]} · ${p===me?v.hand.length:v.oppCount} lá${v.cfg.skills.includes("gac")?` · 🛡️${MAX_GUARDS-v.guardsUsed[p]}`:""}
           ${p===opp&&!oppOnline?'<span class="off">· mất kết nối</span>':""}</div></div>
-      <div class="seqs">${Array.from({length:SEQ_TO_WIN},(_,k)=>`<span class="pip${k<v.seqs[p]?" on":""}"></span>`).join("")}</div>
+      <div class="seqs">${Array.from({length:v.cfg.need},(_,k)=>`<span class="pip${k<v.seqs[p]?" on":""}"></span>`).join("")}</div>
     </div>`).join("");
-  $("deckCount").textContent=v.deckCount;
+
+  // oracle
+  $("oracleBox").classList.toggle("hidden", !v.oppHand);
+  if(v.oppHand) $("oracleHand").innerHTML=v.oppHand.map(c=>cardHTML(c,"tabindex=-1"," small")).join("");
+
+  // game info
+  const used=[...new Set(v.terrain.filter(Boolean))];
+  $("gameInfo").innerHTML=`<b>${esc(v.mapName)}</b> · ${v.cfg.need} sequence · ${v.cfg.hand} lá · ${v.cfg.turnSec?v.cfg.turnSec+" giây/lượt":"không giới hạn giờ"}<br>
+    Mèo kỹ năng: ${v.cfg.skills.length?v.cfg.skills.map(k=>SKILL_LOOK[k].icon).join(" "):"tắt"} · Bộ bài còn <b>${v.deckCount}</b> lá
+    ${used.length?`<ul class="legend">${used.map(t=>`<li>${TERRAIN[t].icon} <b>${TERRAIN[t].name}</b>: ${TERRAIN[t].desc}</li>`).join("")}</ul>`:""}`;
   $("log").innerHTML = v.log.slice().reverse().map(l=>`<li>${esc(l)}</li>`).join("");
 }
 let deadline=0;
 function tickTimer(){
   const t=$("timer"), bar=$("tbar"); if(!t||!view) return;
-  if(view.winner!==null){ bar.style.width="0"; return; }
+  const ms=view.cfg.turnSec*1000;
+  if(view.winner!==null || !ms){ bar.style.width="0"; return; }
   if(view.paused){ t.textContent="⏸"; t.classList.remove("low"); bar.style.width="100%"; return; }
   const left=Math.max(0, deadline-performance.now());
   const sec=Math.ceil(left/1000);
   t.textContent="⏰ "+sec+"s";
   t.classList.toggle("low", sec<=5);
-  bar.style.width=(left/TURN_MS*100)+"%";
+  bar.style.width=(left/ms*100)+"%";
 }
 setInterval(tickTimer, 200);
-function isDeadView(c){ return c[0]!=="J" && view.board.every((b,i)=>b!==c || view.chips[i]!==null); }
 function esc(s){ return String(s).replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch])); }
 
 function onCellClick(i){
-  const v=view; if(!v) return;
-  if(v.winner!==null) return;
+  const v=view; if(!v || v.winner!==null) return;
   if(v.turn!==v.me){ toast("Chưa đến lượt bạn 🐾"); return; }
+  if(v.pending){ toast("Chọn 1 lá câu được trước đã"); showFish(); return; }
   if(selected===null){ toast("Chọn 1 lá bài trên tay trước"); return; }
-  const c=v.hand[selected];
-  if(v.board[i]==="XX"){ toast("Ô bát cá là ô tự do, không cần đặt"); return; }
-  if(isOneEyed(c)){
-    if(v.chips[i]!==1-v.me){ toast("Chọn dấu chân của đối thủ để gỡ"); return; }
-    if(v.locked[i]){ toast("Dấu chân trong sequence không gỡ được"); return; }
-  } else {
-    if(v.chips[i]!==null){ toast("Ô này đã có dấu chân"); return; }
-    if(!isTwoEyed(c) && v.board[i]!==c){ toast(`Ô này không phải ${cardLabel(c)}`); return; }
+  const c=v.hand[selected], n=needCount(c);
+  if(n===0){ toast("Kỹ năng này không cần chọn ô — bấm ✨ Dùng"); return; }
+  if(n===2 && firstCell!==null){
+    if(i===firstCell){ firstCell=null; render(false); return; }
+    if(!targets(v,v.me,c,firstCell).includes(i)){ toast("Chọn một ô đang sáng"); return; }
+    sendAction({type:"skill", card:c, cells:[firstCell,i]}); firstCell=null;
+    return;
   }
-  sendAction({type:"play", card:c, cell:i});
+  if(!targets(v,v.me,c).includes(i)){
+    if(v.board[i]==="XX" && !(isSkill(c)&&skillOf(c)==="thaman")) toast("Ô bát cá là ô tự do, không cần đặt");
+    else toast(isNormal(c) ? `Ô này không đặt được ${cardLabel(c)}` : "Chọn một ô đang sáng");
+    return;
+  }
+  if(n===2){ firstCell=i; render(false); return; }
+  if(isSkill(c)) sendAction({type:"skill", card:c, cells:[i]});
+  else sendAction({type:"play", card:c, cell:i});
 }
 
-function openOverlay(html, tag){ $("overlayCard").innerHTML=html; $("overlay").dataset.tag=tag; $("overlay").classList.remove("hidden"); }
+function openOverlay(html, tag, wide){
+  $("overlayCard").innerHTML=html; $("overlayCard").classList.toggle("wide", !!wide);
+  $("overlay").dataset.tag=tag; $("overlay").classList.remove("hidden");
+}
 function closeOverlay(tag){ if($("overlay").dataset.tag===tag) $("overlay").classList.add("hidden"); }
+function showFish(){
+  openOverlay(`<h2>🎣 Câu được 2 lá</h2><p class="tag">Giữ 1 lá, lá còn lại bỏ đi.</p>
+    <div class="hand" id="fishPick">${view.pending.map((c,i)=>cardHTML(c,`data-k="${i}"`,"")).join("")}</div>`, "fish");
+  $("fishPick").onclick=e=>{ const b=e.target.closest(".card"); if(!b) return; $("overlay").classList.add("hidden"); sendAction({type:"fish", keep:+b.dataset.k}); };
+}
 function showWinner(){
   const v=view, won=v.winner===v.me;
   openOverlay(`<svg class="logo" style="color:${won?"#ffd7a8":"#d9ccf5"}"><use href="#${won?"cat":"catwink"}"/></svg>
     <h2>${won?"🏆 Bạn thắng!":"😿 Thua mất rồi"}</h2>
-    <p class="tag">${esc(v.names[v.winner])} hoàn thành ${SEQ_TO_WIN} sequence.</p>
-    <div class="row">${isHost?'<button class="btn" id="againBtn">🐾 Ván mới</button>':'<p class="tag" style="margin:0">Chờ chủ phòng mở ván mới…</p>'}</div>
+    <p class="tag">${esc(v.names[v.winner])} hoàn thành ${v.cfg.need} sequence.</p>
+    ${isHost?'<div class="row"><button class="btn" id="againBtn">🐾 Ván mới</button></div><div class="row"><button class="btn ghost" id="ruleBtn">⚙️ Đổi luật / bản đồ</button></div>'
+            :'<p class="tag" style="margin:0">Chờ chủ phòng mở ván mới…</p>'}
     <div class="row"><button class="btn ghost" id="viewBoardBtn">Xem lại bàn</button></div>`, "win");
-  if(isHost) $("againBtn").onclick=()=>{ state=newGame(state.names, 1-state.winner); prevMove=-1; broadcast(); };
+  if(isHost){
+    $("againBtn").onclick=()=>{ state=newGame(state.names, 1-state.winner, settings); prevMove=-1; broadcast(); };
+    $("ruleBtn").onclick=openSettings;
+  }
   $("viewBoardBtn").onclick=()=>$("overlay").classList.add("hidden");
 }
 
 /* ================= Events ================= */
-$("createBtn").onclick=createRoom;
+$("createBtn").onclick=()=>{ createRoom(); if(isHost) bindSetup($("setupWait")); };
 $("joinBtn").onclick=joinRoom;
-$("nameInput").addEventListener("keydown",e=>{ if(e.key==="Enter") ($("codeInput").value.trim()?joinRoom:createRoom)(); });
+$("nameInput").addEventListener("keydown",e=>{ if(e.key==="Enter") ($("codeInput").value.trim()?joinRoom:$("createBtn").onclick)(); });
 $("codeInput").addEventListener("keydown",e=>{ if(e.key==="Enter") joinRoom(); });
 $("codeInput").addEventListener("input",e=>{ e.target.value=e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,""); });
 function copyLink(){ const l=roomLink(); (navigator.clipboard?navigator.clipboard.writeText(l):Promise.reject()).then(()=>toast("Đã sao chép link phòng!"),()=>prompt("Sao chép link này:",l)); }
 $("copyBtn").onclick=copyLink; $("copyBtn2").onclick=copyLink;
+$("setBtn").onclick=openSettings;
 $("board").addEventListener("click",e=>{ const c=e.target.closest(".cell"); if(c) onCellClick(+c.dataset.i); });
 $("hand").addEventListener("click",e=>{
   const b=e.target.closest(".card"); if(!b||!view) return;
-  const i=+b.dataset.h; selected = selected===i ? null : i; render(false);
+  const i=+b.dataset.h; selected = selected===i ? null : i; firstCell=null; render(false);
 });
 $("deadBtn").onclick=()=>{ if(selected!==null) sendAction({type:"dead", card:view.hand[selected]}); };
+$("skillBtn").onclick=()=>{ if(selected!==null) sendAction({type:"skill", card:view.hand[selected], cells:[]}); };
+$("passBtn").onclick=()=>sendAction({type:"pass"});
 function syncMute(){ $("muteBtn").textContent = muted ? "🔇 Tắt" : "🔊 Meo"; }
 $("muteBtn").onclick=()=>{ muted=!muted; try{ localStorage.setItem("seqmeo-muted",muted?"1":"0"); }catch(e){} syncMute(); if(!muted) meow("place"); };
 syncMute();
