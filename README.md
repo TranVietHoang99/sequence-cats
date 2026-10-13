@@ -12,6 +12,12 @@ Có **10 mèo kỹ năng** và **7 bản đồ** với địa hình.
 4. Người tạo phòng (chủ phòng) phải **giữ tab mở** suốt ván, vì máy chủ phòng giữ trạng thái ván chơi.
    Chủ phòng có thể đổi luật giữa chừng bằng nút ⚙️ Luật.
 
+## Nhúng vào game khác
+Từ v2.1, game khác có thể mở một ván trong iframe:
+`index.html?embed=1&role=host|guest&room=ABCDE&name=Tên` — tự tạo / vào phòng, ẩn link mời, không có ván mới,
+và gửi `postMessage({src:"seqmeo", type:"start"|"result"|"close", room, win})` về trang cha.
+Đang dùng bởi [Nông Trại Chibi](https://tranviethoang99.github.io/chibi-farm/) để thách đấu cược xu.
+
 ## Luật cơ bản
 - Chọn 1 lá trên tay, các ô dùng được sẽ sáng lên, bấm vào ô để đặt dấu chân 🐾.
 - 5 dấu chân liên tiếp (ngang/dọc/chéo) = 1 sequence. Bát cá ở góc và hộp giấy là ô tự do, tính cho cả hai bên.

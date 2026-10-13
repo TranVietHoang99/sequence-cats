@@ -37,6 +37,7 @@ svg.sprite{position:absolute;width:0;height:0}
   box-shadow:0 12px 40px rgba(223,126,163,.18);text-align:center;border:3px solid #ffe0ec;
 }
 #lobbyWait{max-width:560px}
+body.embed #lobbyMain>label, body.embed #lobbyMain>input, body.embed #lobbyMain>.row, body.embed #lobbyMain>.or, body.embed #lobbyWait>.tag, body.embed #waitCode, body.embed #waitLink, body.embed #copyBtn, body.embed #copyBtn2{display:none}
 .logo{width:110px;height:110px;margin:0 auto -6px;display:block}
 h1{margin:0;font-size:2.3rem;line-height:1.1;letter-spacing:.5px}
 h1 .a{color:var(--pink-d)} h1 .b{color:var(--mint-d)}
@@ -318,7 +319,7 @@ details .rh{margin:10px 0 0;font-weight:800}
     <input id="codeInput" maxlength="5" placeholder="ABCDE" autocomplete="off">
     <div class="row"><button class="btn mint" id="joinBtn">Vào phòng</button></div>
     <div class="msg" id="lobbyMsg"></div>
-    <div style="margin-top:10px;font-size:.8rem;color:var(--muted)">Phiên bản 2.0 · mèo kỹ năng &amp; bản đồ</div>
+    <div style="margin-top:10px;font-size:.8rem;color:var(--muted)">Phiên bản 2.1 · mèo kỹ năng &amp; bản đồ</div>
   </div>
 
   <div class="lobby-card waiting hidden" id="lobbyWait">
@@ -339,7 +340,7 @@ details .rh{margin:10px 0 0;font-weight:800}
 <section id="game" class="hidden">
   <header>
     <div class="title"><svg style="color:#ffd7a8"><use href="#cat"/></svg>Sequence Mèo</div>
-    <div class="room">Phòng <b id="roomCode"></b> <span id="netMode"></span></div><div class="room" style="font-size:.8rem">v2.0</div>
+    <div class="room">Phòng <b id="roomCode"></b> <span id="netMode"></span></div><div class="room" style="font-size:.8rem">v2.1</div>
     <div class="sp"></div>
     <button class="btn ghost hidden" id="setBtn">⚙️ Luật</button>
     <button class="btn ghost" id="copyBtn2">📋 Link</button>
@@ -833,6 +834,13 @@ let view=null, prevMove=-1, selected=null;
 let hostRelays=[], relayConns=new Map();
 let chans=[], activeCh=null, attempt=0, guestTimers=[];
 const netState={p2p:false, relay:false};
+/* Chế độ nhúng: game khác (VD Nông Trại Chibi) mở ván trong iframe với ?embed=1&role=host|guest&room=ABCDE&name=...
+   rồi nhận kết quả qua postMessage {src:"seqmeo", type:"start"|"result"|"close"}. */
+const QS0 = new URLSearchParams(location.search);
+const EMBED = QS0.get("embed")==="1" && window.parent!==window;
+const EMBED_ROOM = EMBED ? (QS0.get("room")||"").toUpperCase().replace(/[^A-Z0-9]/g,"").slice(0,5) : "";
+let embedReported = false;
+function toParent(m){ if(EMBED) window.parent.postMessage(Object.assign({src:"seqmeo", room:roomCode}, m), "*"); }
 
 const $ = id => document.getElementById(id);
 function toast(t){ const el=$("toast"); el.textContent=t; el.classList.add("show"); clearTimeout(el._t); el._t=setTimeout(()=>el.classList.remove("show"),2600); }
@@ -865,10 +873,10 @@ function createRoom(){
   const n=getName(); if(!n) return;
   if(libsMissing()){ lobbyMsg("Không tải được thư viện kết nối, kiểm tra mạng."); return; }
   audio(); myName=n; isHost=true; lockLobby(true); lobbyMsg("");
-  roomCode=genCode();
+  roomCode=EMBED_ROOM.length===5 ? EMBED_ROOM : genCode();
   $("lobbyMain").classList.add("hidden"); $("lobbyWait").classList.remove("hidden");
   $("waitCode").textContent=roomCode; $("waitLink").textContent=roomLink();
-  history.replaceState(null,"","?room="+roomCode+"&host=1");
+  if(!EMBED) history.replaceState(null,"","?room="+roomCode+"&host=1");
   setNet("p2p",false);
   if(typeof Peer!=="undefined"){
     peer=new Peer(PREFIX+roomCode);
@@ -958,6 +966,7 @@ function startGuestConnect(){
   guestTimers.push(setTimeout(()=>{
     if(my!==attempt || activeCh) return;
     stopGuest();
+    if(EMBED && !view){ startGuestConnect(); return; }
     if(view) showDisconnected(true);
     else { lobbyMsg(`Không vào được phòng ${roomCode}. Kiểm tra mã phòng và chắc chắn chủ phòng vẫn đang mở tab game.`); lockLobby(false); }
   }, 25000));
@@ -1091,7 +1100,9 @@ function openSettings(){
     <div class="row"><button class="btn" id="applyNow">🐾 Chơi ván mới ngay</button></div>
     <div class="row"><button class="btn ghost" id="closeSet">Để ván sau</button></div>`, "set", true);
   bindSetup($("setupModal"));
-  $("applyNow").onclick=()=>{ if(!state) return; state=newGame(state.names, undefined, settings); prevMove=-1; $("overlay").classList.add("hidden"); broadcast(); };
+  $("applyNow").onclick=()=>{ if(!state) return;
+    if(EMBED && (state.moveNo>0 || state.winner!==null)){ toast("Ván cược đã bắt đầu, không đổi luật được nữa."); return; }
+    state=newGame(state.names, undefined, settings); prevMove=-1; $("overlay").classList.add("hidden"); broadcast(); };
   $("closeSet").onclick=()=>$("overlay").classList.add("hidden");
 }
 
@@ -1102,7 +1113,8 @@ function startGameUI(){
   $("roomCode").textContent=roomCode;
   $("setBtn").classList.toggle("hidden", !isHost);
   $("rules").innerHTML=rulesHTML();
-  if(!isHost) history.replaceState(null,"","?room="+roomCode);
+  if(!isHost && !EMBED) history.replaceState(null,"","?room="+roomCode);
+  toParent({type:"start"});
 }
 function rulesHTML(){
   return `<ul>
@@ -1150,6 +1162,7 @@ function onView(v){
   prevMove=v.moveNo; view=v;
   deadline = performance.now() + (v.timeLeft||0);
   render(moved);
+  if(v.winner!==null && !embedReported){ embedReported=true; toParent({type:"result", win:v.winner===v.me, winner:v.names[v.winner]}); }
   if(v.winner!==null) showWinner();
   else {
     closeOverlay("win");
@@ -1316,10 +1329,12 @@ function showWinner(){
   openOverlay(`<svg class="logo" style="color:${won?"#ffd7a8":"#d9ccf5"}"><use href="#${won?"cat":"catwink"}"/></svg>
     <h2>${won?"🏆 Bạn thắng!":"😿 Thua mất rồi"}</h2>
     <p class="tag">${esc(v.names[v.winner])} hoàn thành ${v.cfg.need} sequence.</p>
-    ${isHost?'<div class="row"><button class="btn" id="againBtn">🐾 Ván mới</button></div><div class="row"><button class="btn ghost" id="ruleBtn">⚙️ Đổi luật / bản đồ</button></div>'
+    ${EMBED?'<div class="row"><button class="btn" id="backBtn">🏡 Về nông trại</button></div>'
+     :isHost?'<div class="row"><button class="btn" id="againBtn">🐾 Ván mới</button></div><div class="row"><button class="btn ghost" id="ruleBtn">⚙️ Đổi luật / bản đồ</button></div>'
             :'<p class="tag" style="margin:0">Chờ chủ phòng mở ván mới…</p>'}
     <div class="row"><button class="btn ghost" id="viewBoardBtn">Xem lại bàn</button></div>`, "win");
-  if(isHost){
+  if(EMBED) $("backBtn").onclick=()=>toParent({type:"close"});
+  else if(isHost){
     $("againBtn").onclick=()=>{ state=newGame(state.names, 1-state.winner, settings); prevMove=-1; broadcast(); };
     $("ruleBtn").onclick=openSettings;
   }
@@ -1352,7 +1367,13 @@ try{ $("nameInput").value = localStorage.getItem("seqmeo-name")||""; }catch(e){}
 const qs=new URLSearchParams(location.search);
 if(qs.get("room") && !qs.get("host")){ $("codeInput").value=qs.get("room").toUpperCase().slice(0,5); }
 if(qs.get("host")) history.replaceState(null,"",location.pathname);
-window.addEventListener("beforeunload",e=>{ if(isHost && state && state.winner===null){ e.preventDefault(); e.returnValue=""; } });
+window.addEventListener("beforeunload",e=>{ if(!EMBED && isHost && state && state.winner===null){ e.preventDefault(); e.returnValue=""; } });
+if(EMBED){
+  document.body.classList.add("embed");
+  $("nameInput").value=(qs.get("name")||"Mèo").trim().slice(0,16)||"Mèo";
+  if(qs.get("role")==="host"){ createRoom(); if(isHost) bindSetup($("setupWait")); }
+  else { $("codeInput").value=EMBED_ROOM; joinRoom(); }
+}
 </script>
 </body>
 </html>
